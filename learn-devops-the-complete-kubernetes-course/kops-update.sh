@@ -15,4 +15,4 @@ ScriptDirectory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 # shellcheck source=./export.sh
 . "$(realpath "$ScriptDirectory/export.sh")"
 
-kops update cluster --name=$CLUSTER_NAME
+kops update cluster --name=$CLUSTER_NAME --yes
