@@ -24,6 +24,11 @@ kubectl expose deployment hello-minikube --type=NodePort
 kubectl get services
 ```
 
+* list clusters with: kops get cluster
+* edit this cluster with: kops edit cluster simple.k8s.local
+* edit your node instance group: kops edit ig --name=simple.k8s.local nodes
+* edit your master instance group: kops edit ig --name=simple.k8s.local master-europe-west2-c
+
 * validate cluster: kops validate cluster
 * list nodes: kubectl get nodes --show-labels
 * ssh to the master: ssh -i ~/.ssh/id_rsa admin@api.simple.k8s.local
