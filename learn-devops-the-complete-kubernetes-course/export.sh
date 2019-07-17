@@ -8,7 +8,7 @@ export ZONES="europe-west2-a,europe-west2-b,europe-west2-c"
 
 # X nodes per zone
 ZONE_COUNT_INTERMEDIATE="${ZONES//[^,]}"
-NODES_PER_ZONE=3
+NODES_PER_ZONE=2
 
 export NODE_COUNT=$(( ( ${#ZONE_COUNT_INTERMEDIATE} + 1 ) * NODES_PER_ZONE ))
 
