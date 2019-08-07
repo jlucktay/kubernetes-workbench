@@ -1,6 +1,4 @@
-<p align="center">
-  <img src="img/k8s-aws.png" />
-</p>
+<img src="https://raw.githubusercontent.com/kubernetes/kops/master/docs/img/k8s-aws.png" />
 
 # Getting Started
 
