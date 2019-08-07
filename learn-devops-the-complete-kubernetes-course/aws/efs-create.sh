@@ -15,4 +15,8 @@ ScriptDirectory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 # shellcheck source=./export.sh
 . "$(realpath "$ScriptDirectory/export.sh")"
 
-aws efs create-file-system --creation-token 1
+EFSID=$(aws efs create-file-system --creation-token 1 | jq -r '.FileSystemId')
+ClusterSubnet=$(aws ec2 describe-subnets --filter "Name=tag:KubernetesCluster,Values=$CLUSTER_NAME" | jq -r '.Subnets[].SubnetId')
+SecurityGroupID=$(aws ec2 describe-security-groups --filter "Name=tag:Name,Values=nodes.$CLUSTER_NAME" | jq -r '.SecurityGroups[].GroupId')
+
+aws efs create-mount-target --file-system-id "$EFSID" --subnet-id "$ClusterSubnet" --security-groups "$SecurityGroupID"
