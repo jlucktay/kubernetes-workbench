@@ -49,3 +49,33 @@ Use `kubectl` to create with `-f <file>` and then `kubectl edit <resource>` to s
     1. readiness probe
     1. liveness probe
 1. pre stop hook
+
+## Snippets
+
+### Get logs from a pod
+
+``` bash
+kubectl logs wordpress-db-2p8hz
+```
+
+### Scale one or more replica sets/controllers (or basically any other type of resource)
+
+``` bash
+kubectl scale --replicas=4 deployment pod-affinity-2
+```
+
+### Taint/untaint a node so that new deployments stop/resume scheduling onto it
+
+``` bash
+# Taint/stop
+kubectl taint nodes ip-172-20-35-107.eu-west-2.compute.internal type=specialnode:NoSchedule
+
+# Untaint/resume
+kubectl taint node ip-172-20-35-107.eu-west-2.compute.internal type-
+```
+
+### Expose a Deployment using a Service
+
+``` bash
+kubectl expose deployment/kubernetes-bootcamp --type="NodePort" --port 8080
+```
