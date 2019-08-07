@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="img/k8s-aws.png"> </image>
+  <img src="img/k8s-aws.png" />
 </p>
 
 # Getting Started
@@ -12,7 +12,7 @@ Before we can bring up the cluster we need to [install the CLI tool](install.md)
 
 In order to control Kubernetes clusters we need to [install the CLI tool](install.md) `kubectl`.
 
-#### Other Platforms
+### Other Platforms
 
 * [Kubernetes Latest Release](https://github.com/kubernetes/kubernetes/releases/latest)
 
@@ -26,7 +26,6 @@ In order to correctly prepare your AWS account for `kops`, we require you to
 install the AWS CLI tools, and have API credentials for an account that has
 the permissions to create a new IAM account for `kops` later in the guide.
 
-
 Once you've [installed the AWS CLI tools](install.md) and have correctly setup
 your system to use the official AWS methods of registering security credentials
 as [defined here](https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html#specifying-credentials) we'll be ready to run `kops`, as it uses the Go AWS SDK.
@@ -39,7 +38,7 @@ the user, and credentials, using the [AWS console](http://docs.aws.amazon.com/IA
 
 The `kops` user will require the following IAM permissions to function properly:
 
-```
+``` text
 AmazonEC2FullAccess
 AmazonRoute53FullAccess
 AmazonS3FullAccess
@@ -131,7 +130,7 @@ aws route53 list-hosted-zones | jq '.HostedZones[] | select(.Name=="example.com.
 
 Note: The NS values here are for the **SUBDOMAIN**
 
-```
+``` json
 {
   "Comment": "Create a subdomain NS record in the parent domain",
   "Changes": [
@@ -163,7 +162,7 @@ Note: The NS values here are for the **SUBDOMAIN**
 
 * Apply the **SUBDOMAIN** NS records to the **PARENT** hosted zone.
 
-```
+``` bash
 aws route53 change-resource-record-sets \
  --hosted-zone-id <parent-zone-id> \
  --change-batch file://subdomain.json
@@ -208,13 +207,13 @@ By default the assumption is that NS records are publicly available.  If you
 require private DNS records you should modify the commands we run later in this
 guide to include:
 
-```
+``` bash
 kops create cluster --dns private $NAME
 ```
 
 If you have a mix of public and private zones, you will also need to include the `--dns-zone` argument with the hosted zone id you wish to deploy in:
 
-```
+``` bash
 kops create cluster --dns private --dns-zone ZABCDEFG $NAME
 ```
 
@@ -231,7 +230,7 @@ dig ns subdomain.example.com
 
 Should return something similar to:
 
-```
+``` bash
 ;; ANSWER SECTION:
 subdomain.example.com.        172800  IN  NS  ns-1.awsdns-1.net.
 subdomain.example.com.        172800  IN  NS  ns-2.awsdns-2.org.
@@ -284,7 +283,7 @@ aws s3api put-bucket-encryption --bucket prefix-example-com-state-store --server
 ```
 
 If the default encryption is not set or it cannot be checked, kops will resort to using client side AES256 encryption.
- 
+
 ### Sharing an S3 bucket across multiple accounts
 
 It is possible to use a single S3 bucket for storing kops state for clusters
@@ -399,7 +398,7 @@ kops validate cluster
 
 You can look at all the system components with the following command.
 
-```
+``` bash
 kubectl -n kube-system get po
 ```
 
@@ -411,7 +410,7 @@ want to delete your cluster if you are finished running experiments.
 You can preview all of the AWS resources that will be destroyed when the cluster
 is deleted by issuing the following command.
 
-```
+``` bash
 kops delete cluster --name ${NAME}
 ```
 
@@ -419,11 +418,11 @@ When you are sure you want to delete your cluster, issue the delete command
 with the `--yes` flag. Note that this command is very destructive, and will
 delete your cluster and everything contained within it!
 
-```
+``` bash
 kops delete cluster --name ${NAME} --yes
 ```
 
-# What's next?
+# What's next
 
 We've barely scratched the surface of the capabilities of `kops` in this guide,
 and we recommend researching [other interesting
@@ -438,8 +437,7 @@ topology](topology.md) in AWS.
 ## Feedback
 
 There's an incredible team behind Kops and we encourage you to reach out to the
-community on the Kubernetes
-Slack(http://slack.k8s.io/).  Bring your
+community on the [Kubernetes Slack](http://slack.k8s.io/).  Bring your
 questions, comments, and requests and meet the people behind the project!
 
 ## Legal
