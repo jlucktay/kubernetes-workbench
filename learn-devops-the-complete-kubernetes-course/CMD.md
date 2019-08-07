@@ -34,3 +34,18 @@ kubectl get services
 * ssh to the master: ssh -i ~/.ssh/id_rsa admin@api.simple.k8s.local
 * the admin user is specific to Debian. If not using Debian please use the appropriate user based on your OS.
 * read about installing addons at: <https://github.com/kubernetes/kops/blob/master/docs/addons.md>.
+
+## Checking defaults with `edit` when not specified in YAML file(s)
+
+Use `kubectl` to create with `-f <file>` and then `kubectl edit <resource>` to see all values, both implicit and explicit, which lays out defaults that were not specified in YAML.
+
+## Pod lifecycle
+
+1. init container
+1. post-init
+    1. post start hook
+    1. main container
+1. probes
+    1. readiness probe
+    1. liveness probe
+1. pre stop hook
