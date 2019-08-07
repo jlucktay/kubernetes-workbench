@@ -15,8 +15,20 @@ ScriptDirectory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 # shellcheck source=./export.sh
 . "$(realpath "$ScriptDirectory/export.sh")"
 
-EFSID=$(aws efs create-file-system --creation-token 1 | jq -r '.FileSystemId')
-ClusterSubnet=$(aws ec2 describe-subnets --filter "Name=tag:KubernetesCluster,Values=$CLUSTER_NAME" | jq -r '.Subnets[].SubnetId')
-SecurityGroupID=$(aws ec2 describe-security-groups --filter "Name=tag:Name,Values=nodes.$CLUSTER_NAME" | jq -r '.SecurityGroups[].GroupId')
+FileSystemId=$(aws efs create-file-system --creation-token 1 | jq -r '.FileSystemId')
+echo "FileSystemId: $FileSystemId"
 
-aws efs create-mount-target --file-system-id "$EFSID" --subnet-id "$ClusterSubnet" --security-groups "$SecurityGroupID"
+SubnetId=$(aws ec2 describe-subnets --filter "Name=tag:KubernetesCluster,Values=$CLUSTER_NAME" | jq -r '.Subnets[].SubnetId')
+echo "SubnetId: $SubnetId"
+
+SecurityGroupId=$(aws ec2 describe-security-groups --filter "Name=tag:Name,Values=nodes.$CLUSTER_NAME" | jq -r '.SecurityGroups[].GroupId')
+echo "SecurityGroupId: $SecurityGroupId"
+
+LifeCycleState=
+
+until [ "$LifeCycleState" == "available" ]; do
+    LifeCycleState=$(aws efs describe-file-systems --file-system-id "$FileSystemId" | jq -r '.FileSystems[].LifeCycleState')
+    echo "LifeCycleState: $LifeCycleState"
+done
+
+aws efs create-mount-target --file-system-id "$FileSystemId" --subnet-id "$SubnetId" --security-groups "$SecurityGroupId"
