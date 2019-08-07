@@ -15,4 +15,4 @@ ScriptDirectory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 # shellcheck source=./export.sh
 . "$(realpath "$ScriptDirectory/export.sh")"
 
-kops create cluster --zones="$ZONES" $CLUSTER_NAME --node-count=$NODE_COUNT
+kops create cluster --cloud="$CLOUD" --zones="$ZONES" $CLUSTER_NAME --node-count=$NODE_COUNT
