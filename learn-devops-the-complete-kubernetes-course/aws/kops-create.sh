@@ -10,9 +10,32 @@ fi
 shopt -s nullglob globstar
 IFS=$'\n\t'
 
+### Get flags ready to parse given arguments
+YES=0
+
+for i in "$@"; do
+    case $i in
+        -y|--yes)
+            YES=1;          shift;;
+        *) # unknown option
+                            exit 1;;
+    esac
+done
+
 ScriptDirectory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 
 # shellcheck source=./export.sh
 . "$(realpath "$ScriptDirectory/export.sh")"
 
-kops create cluster --cloud="$CLOUD" --zones="$ZONES" $CLUSTER_NAME --node-count=$NODE_COUNT
+# kops create cluster --cloud="$CLOUD" --zones="$ZONES" $CLUSTER_NAME --node-count=$NODE_COUNT --dry-run --output json
+KopsArgs=(create cluster "--cloud=$CLOUD" "--zones=$ZONES" "$CLUSTER_NAME" "--node-count=$NODE_COUNT")
+
+if [ $YES == 1 ]; then
+    KopsArgs+=(--yes)
+fi
+
+### Show arguments and execute with them
+echo "Running Kops with following arguments:"
+echo "${KopsArgs[@]}"
+
+kops "${KopsArgs[@]}"
