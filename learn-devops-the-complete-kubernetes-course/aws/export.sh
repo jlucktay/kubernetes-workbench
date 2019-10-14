@@ -58,7 +58,7 @@ for i in "$@"; do
             usage
             exit 0;;
         *) # unknown option
-            echo "${ScriptName} unknown argument '$i'."
+            echo "$ScriptName unknown argument '$i'."
             usage
             exit 1;;
     esac
@@ -66,11 +66,11 @@ done
 
 # Validate argument number values
 NumberRegEx='^[0-9]+$'
-if ! [[ $NODES_PER_ZONE =~ $NumberRegEx ]]; then
-    echo "${ScriptName} error: '${NODES_PER_ZONE}' is not a number" >&2; exit 1
+if ! [[ "$NODES_PER_ZONE" =~ "$NumberRegEx" ]]; then
+    echo "$ScriptName error: '$NODES_PER_ZONE' is not a number" >&2; exit 1
 fi
-if ! [[ $ZONE_COUNT =~ $NumberRegEx ]]; then
-    echo "${ScriptName} error: '${ZONE_COUNT}' is not a number" >&2; exit 1
+if ! [[ "$ZONE_COUNT" =~ "$NumberRegEx" ]]; then
+    echo "$ScriptName error: '$ZONE_COUNT' is not a number" >&2; exit 1
 fi
 
 ### AWS
@@ -100,7 +100,7 @@ fi
 mapfile -t AvailableZones < <( aws ec2 describe-availability-zones --region "$AWS_REGION" \
     | jq --raw-output '.AvailabilityZones[].ZoneName' )
 
-# Take highest of ZONE_COUNT and len(AvailableZones), and slice this many elements from ZONES
+# Take highest of ZONE_COUNT and len(AvailableZones), and slice this many elements from AvailableZones
 ZoneLen=$(( ZONE_COUNT > ${#AvailableZones[@]} ? ZONE_COUNT : ${#AvailableZones[@]} ))
 export ZONES=("${AvailableZones[@]:0:${ZoneLen}}")
 
