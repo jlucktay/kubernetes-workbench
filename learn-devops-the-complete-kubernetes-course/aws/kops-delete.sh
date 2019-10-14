@@ -13,6 +13,6 @@ IFS=$'\n\t'
 ScriptDirectory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 
 # shellcheck source=./export.sh
-. "$(realpath "$ScriptDirectory/export.sh")"
+. "$(realpath "$ScriptDirectory/export.sh")" --kops
 
 kops delete cluster --name=$CLUSTER_NAME --yes

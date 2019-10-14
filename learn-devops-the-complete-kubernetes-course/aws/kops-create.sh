@@ -25,7 +25,7 @@ done
 ScriptDirectory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 
 # shellcheck source=./export.sh
-. "$(realpath "$ScriptDirectory/export.sh")"
+. "$(realpath "$ScriptDirectory/export.sh")" --kops
 
 # kops create cluster --cloud="$CLOUD" --zones="$ZONES" $CLUSTER_NAME --node-count=$NODE_COUNT --dry-run --output json
 KopsArgs=(create cluster "--cloud=$CLOUD" "--zones=$ZONES" "$CLUSTER_NAME" "--node-count=$NODE_COUNT")
