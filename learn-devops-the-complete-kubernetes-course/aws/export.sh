@@ -58,10 +58,20 @@ for i in "$@"; do
             usage
             exit 0;;
         *) # unknown option
+            echo "${ScriptName} unknown argument '$i'."
             usage
             exit 1;;
     esac
 done
+
+# Validate argument number values
+NumberRegEx='^[0-9]+$'
+if ! [[ $NODES_PER_ZONE =~ $NumberRegEx ]]; then
+    echo "${ScriptName} error: '${NODES_PER_ZONE}' is not a number" >&2; exit 1
+fi
+if ! [[ $ZONE_COUNT =~ $NumberRegEx ]]; then
+    echo "${ScriptName} error: '${ZONE_COUNT}' is not a number" >&2; exit 1
+fi
 
 ### AWS
 export CLOUD="aws"
@@ -92,7 +102,7 @@ mapfile -t AvailableZones < <( aws ec2 describe-availability-zones --region "$AW
 
 # Take highest of ZONE_COUNT and len(AvailableZones), and slice this many elements from ZONES
 ZoneLen=$(( ZONE_COUNT > ${#AvailableZones[@]} ? ZONE_COUNT : ${#AvailableZones[@]} ))
-export ZONES=("${Zones[@]:0:${ZoneLen}}")
+export ZONES=("${AvailableZones[@]:0:${ZoneLen}}")
 
 # X nodes per zone
 export NODE_COUNT=$(( ${#ZONES[@]} * NODES_PER_ZONE ))
