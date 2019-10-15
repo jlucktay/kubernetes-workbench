@@ -10,19 +10,22 @@ fi
 shopt -s nullglob globstar
 IFS=$'\n\t'
 
+ScriptName=$(basename "$0")
+ScriptDirectory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+
 ### Get flags ready to parse given arguments
 YES=0
 
 for i in "$@"; do
     case $i in
         -y|--yes)
-            YES=1;          shift;;
+            YES=1
+            shift;;
         *) # unknown option
-                            exit 1;;
+            echo "$ScriptName: unknown argument '$i'."
+            exit 1;;
     esac
 done
-
-ScriptDirectory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 
 # shellcheck source=./export.sh
 . "$(realpath "$ScriptDirectory/export.sh")" --kops
