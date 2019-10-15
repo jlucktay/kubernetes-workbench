@@ -31,7 +31,9 @@ done
 . "$(realpath "$ScriptDirectory/export.sh")" --kops
 
 # kops create cluster --cloud="$CLOUD" --zones="$ZONES" $CLUSTER_NAME --node-count=$NODE_COUNT --dry-run --output json
-KopsArgs=(create cluster "--cloud=$CLOUD" "--zones=${ZONES[*]}" "$CLUSTER_NAME" "--node-count=$NODE_COUNT")
+KopsArgs=(create cluster "--cloud=$CLOUD")
+IFS="," KopsArgs+=("--zones=${ZONES[*]}")
+KopsArgs+=("--node-count=$NODE_COUNT" "$CLUSTER_NAME")
 
 if [ "$YES" == 1 ]; then
     KopsArgs+=(--yes)
