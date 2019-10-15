@@ -66,12 +66,10 @@ done
 
 # Validate argument number values
 NumberRegEx='^[0-9]+$'
-# shellcheck disable=SC2076
-if ! [[ "$NODES_PER_ZONE" =~ "$NumberRegEx" ]]; then
+if ! [[ "$NODES_PER_ZONE" =~ $NumberRegEx ]]; then
     echo "$ScriptName error: '$NODES_PER_ZONE' is not a number" >&2; exit 1
 fi
-# shellcheck disable=SC2076
-if ! [[ "$ZONE_COUNT" =~ "$NumberRegEx" ]]; then
+if ! [[ "$ZONE_COUNT" =~ $NumberRegEx ]]; then
     echo "$ScriptName error: '$ZONE_COUNT' is not a number" >&2; exit 1
 fi
 
