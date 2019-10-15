@@ -82,6 +82,9 @@ export CLUSTER_NAME="jlucktay.aws.crlabs.cloud"
 export KOPS_S3_BUCKET="cr-jlucktay-kops-state"
 export KOPS_STATE_STORE="s3://$KOPS_S3_BUCKET"
 
+# Some external tools called below might play up
+set +eu
+
 # Select/auth the desired set of credentials
 if (( KOPS == 1 )); then
     AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id --profile "$AWS_DEFAULT_PROFILE")
