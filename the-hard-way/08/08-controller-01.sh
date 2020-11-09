@@ -5,32 +5,32 @@ sudo mkdir -p /etc/kubernetes/config
 
 #Download the official Kubernetes release binaries
 wget -q --show-progress --https-only --timestamping \
-    "https://storage.googleapis.com/kubernetes-release/release/v1.12.0/bin/linux/amd64/kube-apiserver" \
-    "https://storage.googleapis.com/kubernetes-release/release/v1.12.0/bin/linux/amd64/kube-controller-manager" \
-    "https://storage.googleapis.com/kubernetes-release/release/v1.12.0/bin/linux/amd64/kube-scheduler" \
-    "https://storage.googleapis.com/kubernetes-release/release/v1.12.0/bin/linux/amd64/kubectl"
+  "https://storage.googleapis.com/kubernetes-release/release/v1.12.0/bin/linux/amd64/kube-apiserver" \
+  "https://storage.googleapis.com/kubernetes-release/release/v1.12.0/bin/linux/amd64/kube-controller-manager" \
+  "https://storage.googleapis.com/kubernetes-release/release/v1.12.0/bin/linux/amd64/kube-scheduler" \
+  "https://storage.googleapis.com/kubernetes-release/release/v1.12.0/bin/linux/amd64/kubectl"
 
 # Install the Kubernetes binaries
 {
-    chmod +x kube-apiserver kube-controller-manager kube-scheduler kubectl
-    sudo mv kube-apiserver kube-controller-manager kube-scheduler kubectl /usr/local/bin/
+  chmod +x kube-apiserver kube-controller-manager kube-scheduler kubectl
+  sudo mv kube-apiserver kube-controller-manager kube-scheduler kubectl /usr/local/bin/
 }
 
 # Configure the Kubernetes API Server
 {
-    sudo mkdir -p /var/lib/kubernetes/
+  sudo mkdir -p /var/lib/kubernetes/
 
-    sudo mv ca.pem ca-key.pem kubernetes-key.pem kubernetes.pem \
-        service-account-key.pem service-account.pem \
-        encryption-config.yaml /var/lib/kubernetes/
+  sudo mv ca.pem ca-key.pem kubernetes-key.pem kubernetes.pem \
+    service-account-key.pem service-account.pem \
+    encryption-config.yaml /var/lib/kubernetes/
 }
 
 # The instance internal IP address will be used to advertise the API Server to members of the cluster. Retrieve the internal IP address for the current compute instance.
 INTERNAL_IP=$(curl -s -H "Metadata-Flavor: Google" \
-    http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/ip)
+  http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/ip)
 
 # Create the kube-apiserver.service systemd unit file
-cat <<EOF | sudo tee /etc/systemd/system/kube-apiserver.service
+cat << EOF | sudo tee /etc/systemd/system/kube-apiserver.service
 [Unit]
 Description=Kubernetes API Server
 Documentation=https://github.com/kubernetes/kubernetes
@@ -77,7 +77,7 @@ EOF
 sudo mv kube-controller-manager.kubeconfig /var/lib/kubernetes/
 
 # Create the kube-controller-manager.service systemd unit file
-cat <<EOF | sudo tee /etc/systemd/system/kube-controller-manager.service
+cat << EOF | sudo tee /etc/systemd/system/kube-controller-manager.service
 [Unit]
 Description=Kubernetes Controller Manager
 Documentation=https://github.com/kubernetes/kubernetes
@@ -107,7 +107,7 @@ EOF
 sudo mv kube-scheduler.kubeconfig /var/lib/kubernetes/
 
 # Create the kube-scheduler.yaml configuration file
-cat <<EOF | sudo tee /etc/kubernetes/config/kube-scheduler.yaml
+cat << EOF | sudo tee /etc/kubernetes/config/kube-scheduler.yaml
 apiVersion: componentconfig/v1alpha1
 kind: KubeSchedulerConfiguration
 clientConnection:
@@ -117,7 +117,7 @@ leaderElection:
 EOF
 
 # Create the kube-scheduler.service systemd unit file
-cat <<EOF | sudo tee /etc/systemd/system/kube-scheduler.service
+cat << EOF | sudo tee /etc/systemd/system/kube-scheduler.service
 [Unit]
 Description=Kubernetes Scheduler
 Documentation=https://github.com/kubernetes/kubernetes
@@ -135,9 +135,9 @@ EOF
 
 # Start the Controller Services
 {
-    sudo systemctl daemon-reload
-    sudo systemctl enable kube-apiserver kube-controller-manager kube-scheduler
-    sudo systemctl start kube-apiserver kube-controller-manager kube-scheduler
+  sudo systemctl daemon-reload
+  sudo systemctl enable kube-apiserver kube-controller-manager kube-scheduler
+  sudo systemctl start kube-apiserver kube-controller-manager kube-scheduler
 }
 
 # Allow up to 10 seconds for the Kubernetes API Server to fully initialize

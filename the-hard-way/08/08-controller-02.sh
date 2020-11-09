@@ -3,7 +3,7 @@
 # Install a basic web server to handle HTTP health checks
 sudo apt-get install -y nginx
 
-cat > kubernetes.default.svc.cluster.local <<EOF
+cat > kubernetes.default.svc.cluster.local << EOF
 server {
     listen      80;
     server_name kubernetes.default.svc.cluster.local;
@@ -16,10 +16,10 @@ server {
 EOF
 
 {
-    sudo mv kubernetes.default.svc.cluster.local \
-        /etc/nginx/sites-available/kubernetes.default.svc.cluster.local
+  sudo mv kubernetes.default.svc.cluster.local \
+    /etc/nginx/sites-available/kubernetes.default.svc.cluster.local
 
-    sudo ln -s /etc/nginx/sites-available/kubernetes.default.svc.cluster.local /etc/nginx/sites-enabled/
+  sudo ln -s /etc/nginx/sites-available/kubernetes.default.svc.cluster.local /etc/nginx/sites-enabled/
 }
 
 sudo systemctl restart nginx
