@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fruit-service
+spec:
+  containers:
+    - name: legacy-fruit-service
+      image: linuxacademycontent/legacy-fruit-service:1
+      resources:
+        limits:
+          cpu: "100m"
+          memory: "128Mi"
+    - name: haproxy-ambassador
+      image: haproxy:1.7
+      ports:
+        - containerPort: 80
+      volumeMounts:
+        - name: config-volume
+          mountPath: /usr/local/etc/haproxy
+      resources:
+        limits:
+          cpu: "100m"
+          memory: "128Mi"
+  volumes:
+    - name: config-volume
+      configMap:
+        name: fruit-service-ambassador-config
