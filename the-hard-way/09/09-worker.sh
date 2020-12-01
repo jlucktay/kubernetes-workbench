@@ -3,48 +3,48 @@
 # Provisioning a Kubernetes Worker Node
 # Install the OS dependencies
 {
-    sudo apt-get update
-    sudo apt-get -y install socat conntrack ipset
+  sudo apt-get update
+  sudo apt-get -y install socat conntrack ipset
 }
 
 # Download and Install Worker Binaries
 wget -q --show-progress --https-only --timestamping \
-    https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.12.0/crictl-v1.12.0-linux-amd64.tar.gz \
-    https://storage.googleapis.com/kubernetes-the-hard-way/runsc-50c283b9f56bb7200938d9e207355f05f79f0d17 \
-    https://github.com/opencontainers/runc/releases/download/v1.0.0-rc5/runc.amd64 \
-    https://github.com/containernetworking/plugins/releases/download/v0.6.0/cni-plugins-amd64-v0.6.0.tgz \
-    https://github.com/containerd/containerd/releases/download/v1.2.0-rc.0/containerd-1.2.0-rc.0.linux-amd64.tar.gz \
-    https://storage.googleapis.com/kubernetes-release/release/v1.12.0/bin/linux/amd64/kubectl \
-    https://storage.googleapis.com/kubernetes-release/release/v1.12.0/bin/linux/amd64/kube-proxy \
-    https://storage.googleapis.com/kubernetes-release/release/v1.12.0/bin/linux/amd64/kubelet
+  https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.12.0/crictl-v1.12.0-linux-amd64.tar.gz \
+  https://storage.googleapis.com/kubernetes-the-hard-way/runsc-50c283b9f56bb7200938d9e207355f05f79f0d17 \
+  https://github.com/opencontainers/runc/releases/download/v1.0.0-rc5/runc.amd64 \
+  https://github.com/containernetworking/plugins/releases/download/v0.6.0/cni-plugins-amd64-v0.6.0.tgz \
+  https://github.com/containerd/containerd/releases/download/v1.2.0-rc.0/containerd-1.2.0-rc.0.linux-amd64.tar.gz \
+  https://storage.googleapis.com/kubernetes-release/release/v1.12.0/bin/linux/amd64/kubectl \
+  https://storage.googleapis.com/kubernetes-release/release/v1.12.0/bin/linux/amd64/kube-proxy \
+  https://storage.googleapis.com/kubernetes-release/release/v1.12.0/bin/linux/amd64/kubelet
 
 # Create the installation directories
 sudo mkdir -p \
-    /etc/cni/net.d \
-    /opt/cni/bin \
-    /var/lib/kubelet \
-    /var/lib/kube-proxy \
-    /var/lib/kubernetes \
-    /var/run/kubernetes
+  /etc/cni/net.d \
+  /opt/cni/bin \
+  /var/lib/kubelet \
+  /var/lib/kube-proxy \
+  /var/lib/kubernetes \
+  /var/run/kubernetes
 
 #Install the worker binaries
 {
-    sudo mv runsc-50c283b9f56bb7200938d9e207355f05f79f0d17 runsc
-    sudo mv runc.amd64 runc
-    chmod +x kubectl kube-proxy kubelet runc runsc
-    sudo mv kubectl kube-proxy kubelet runc runsc /usr/local/bin/
-    sudo tar -xvf crictl-v1.12.0-linux-amd64.tar.gz -C /usr/local/bin/
-    sudo tar -xvf cni-plugins-amd64-v0.6.0.tgz -C /opt/cni/bin/
-    sudo tar -xvf containerd-1.2.0-rc.0.linux-amd64.tar.gz -C /
+  sudo mv runsc-50c283b9f56bb7200938d9e207355f05f79f0d17 runsc
+  sudo mv runc.amd64 runc
+  chmod +x kubectl kube-proxy kubelet runc runsc
+  sudo mv kubectl kube-proxy kubelet runc runsc /usr/local/bin/
+  sudo tar -xvf crictl-v1.12.0-linux-amd64.tar.gz -C /usr/local/bin/
+  sudo tar -xvf cni-plugins-amd64-v0.6.0.tgz -C /opt/cni/bin/
+  sudo tar -xvf containerd-1.2.0-rc.0.linux-amd64.tar.gz -C /
 }
 
 # Configure CNI Networking
 # Retrieve the Pod CIDR range for the current compute instance
 POD_CIDR=$(curl -s -H "Metadata-Flavor: Google" \
-    http://metadata.google.internal/computeMetadata/v1/instance/attributes/pod-cidr)
+  http://metadata.google.internal/computeMetadata/v1/instance/attributes/pod-cidr)
 
 # Create the bridge network configuration file
-cat <<EOF | sudo tee /etc/cni/net.d/10-bridge.conf
+cat << EOF | sudo tee /etc/cni/net.d/10-bridge.conf
 {
     "cniVersion": "0.3.1",
     "name": "bridge",
@@ -63,7 +63,7 @@ cat <<EOF | sudo tee /etc/cni/net.d/10-bridge.conf
 EOF
 
 # Create the loopback network configuration file
-cat <<EOF | sudo tee /etc/cni/net.d/99-loopback.conf
+cat << EOF | sudo tee /etc/cni/net.d/99-loopback.conf
 {
     "cniVersion": "0.3.1",
     "type": "loopback"
@@ -92,7 +92,7 @@ cat << EOF | sudo tee /etc/containerd/config.toml
 EOF
 
 # Create the containerd.service systemd unit file
-cat <<EOF | sudo tee /etc/systemd/system/containerd.service
+cat << EOF | sudo tee /etc/systemd/system/containerd.service
 [Unit]
 Description=containerd container runtime
 Documentation=https://containerd.io
@@ -116,13 +116,13 @@ EOF
 
 # Configure the Kubelet
 {
-    sudo mv ${HOSTNAME}-key.pem ${HOSTNAME}.pem /var/lib/kubelet/
-    sudo mv ${HOSTNAME}.kubeconfig /var/lib/kubelet/kubeconfig
-    sudo mv ca.pem /var/lib/kubernetes/
+  sudo mv "$HOSTNAME"-key.pem "$HOSTNAME".pem /var/lib/kubelet/
+  sudo mv "$HOSTNAME".kubeconfig /var/lib/kubelet/kubeconfig
+  sudo mv ca.pem /var/lib/kubernetes/
 }
 
 # Create the kubelet-config.yaml configuration file
-cat <<EOF | sudo tee /var/lib/kubelet/kubelet-config.yaml
+cat << EOF | sudo tee /var/lib/kubelet/kubelet-config.yaml
 kind: KubeletConfiguration
 apiVersion: kubelet.config.k8s.io/v1beta1
 authentication:
@@ -145,7 +145,7 @@ tlsPrivateKeyFile: "/var/lib/kubelet/${HOSTNAME}-key.pem"
 EOF
 
 # Create the kubelet.service systemd unit file
-cat <<EOF | sudo tee /etc/systemd/system/kubelet.service
+cat << EOF | sudo tee /etc/systemd/system/kubelet.service
 [Unit]
 Description=Kubernetes Kubelet
 Documentation=https://github.com/kubernetes/kubernetes
@@ -173,7 +173,7 @@ EOF
 sudo mv kube-proxy.kubeconfig /var/lib/kube-proxy/kubeconfig
 
 # Create the kube-proxy-config.yaml configuration file
-cat <<EOF | sudo tee /var/lib/kube-proxy/kube-proxy-config.yaml
+cat << EOF | sudo tee /var/lib/kube-proxy/kube-proxy-config.yaml
 kind: KubeProxyConfiguration
 apiVersion: kubeproxy.config.k8s.io/v1alpha1
 clientConnection:
@@ -183,7 +183,7 @@ clusterCIDR: "10.200.0.0/16"
 EOF
 
 # Create the kube-proxy.service systemd unit file
-cat <<EOF | sudo tee /etc/systemd/system/kube-proxy.service
+cat << EOF | sudo tee /etc/systemd/system/kube-proxy.service
 [Unit]
 Description=Kubernetes Kube Proxy
 Documentation=https://github.com/kubernetes/kubernetes
@@ -200,7 +200,7 @@ EOF
 
 # Start the Worker Services
 {
-    sudo systemctl daemon-reload
-    sudo systemctl enable containerd kubelet kube-proxy
-    sudo systemctl start containerd kubelet kube-proxy
+  sudo systemctl daemon-reload
+  sudo systemctl enable containerd kubelet kube-proxy
+  sudo systemctl start containerd kubelet kube-proxy
 }

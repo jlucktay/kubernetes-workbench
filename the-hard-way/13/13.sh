@@ -8,11 +8,11 @@
 
 # Create a generic secret:
 kubectl create secret generic kubernetes-the-hard-way \
-    --from-literal="mykey=mydata"
+  --from-literal="mykey=mydata"
 
 # Print a hexdump of the kubernetes-the-hard-way secret stored in etcd:
 gcloud compute ssh controller-0 \
-    --command "sudo ETCDCTL_API=3 etcdctl get \
+  --command "sudo ETCDCTL_API=3 etcdctl get \
         --endpoints=https://127.0.0.1:2379 \
         --cacert=/etc/etcd/ca.pem \
         --cert=/etc/etcd/kubernetes.pem \
@@ -37,7 +37,7 @@ kubectl get pods -l run=nginx
 POD_NAME=$(kubectl get pods -l run=nginx -o jsonpath="{.items[0].metadata.name}")
 
 # Forward port 8080 on your local machine to port 80 of the nginx pod:
-kubectl port-forward $POD_NAME 8080:80
+kubectl port-forward "$POD_NAME" 8080:80
 
 # In a new terminal make an HTTP request using the forwarding address:
 curl --head http://127.0.0.1:8080
@@ -50,13 +50,13 @@ curl --head http://127.0.0.1:8080
 # In this section you will verify the ability to retrieve container logs.
 
 # Print the nginx pod logs:
-kubectl logs $POD_NAME
+kubectl logs "$POD_NAME"
 
 ## Exec
 # In this section you will verify the ability to execute commands in a container.
 
 # Print the nginx version by executing the nginx -v command in the nginx container:
-kubectl exec -ti $POD_NAME -- nginx -v
+kubectl exec -ti "$POD_NAME" -- nginx -v
 
 ## Services
 # In this section you will verify the ability to expose applications using a Service.
@@ -66,25 +66,25 @@ kubectl expose deployment nginx --port 80 --type NodePort
 
 # Retrieve the node port assigned to the nginx service:
 NODE_PORT=$(kubectl get svc nginx \
-    --output=jsonpath='{range .spec.ports[0]}{.nodePort}')
+  --output=jsonpath='{range .spec.ports[0]}{.nodePort}')
 
 # Create a firewall rule that allows remote access to the nginx node port:
 gcloud compute firewall-rules create kubernetes-the-hard-way-allow-nginx-service \
-    --allow=tcp:${NODE_PORT} \
-    --network kubernetes-the-hard-way
+  --allow=tcp:"$NODE_PORT" \
+  --network kubernetes-the-hard-way
 
 # Retrieve the external IP address of a worker instance:
 EXTERNAL_IP=$(gcloud compute instances describe worker-0 \
-    --format 'value(networkInterfaces[0].accessConfigs[0].natIP)')
+  --format 'value(networkInterfaces[0].accessConfigs[0].natIP)')
 
 # Make an HTTP request using the external IP address and the nginx node port:
-curl -I http://${EXTERNAL_IP}:${NODE_PORT}
+curl -I http://"$EXTERNAL_IP:$NODE_PORT"
 
 ## Untrusted Workloads
 # This section will verify the ability to run untrusted workloads using gVisor.
 
 # Create the untrusted pod:
-cat <<EOF | kubectl apply -f -
+cat << EOF | kubectl apply -f -
 apiVersion: v1
 kind: Pod
 metadata:
@@ -107,18 +107,18 @@ kubectl get pods -o wide
 INSTANCE_NAME=$(kubectl get pod untrusted --output=jsonpath='{.spec.nodeName}')
 
 # SSH into the worker node:
-gcloud compute ssh ${INSTANCE_NAME}
+gcloud compute ssh "$INSTANCE_NAME"
 
 # List the containers running under gVisor:
-sudo runsc --root  /run/containerd/runsc/k8s.io list
+sudo runsc --root /run/containerd/runsc/k8s.io list
 
 # Get the ID of the untrusted pod:
 POD_ID=$(sudo crictl -r unix:///var/run/containerd/containerd.sock \
-    pods --name untrusted -q)
+  pods --name untrusted -q)
 
 # Get the ID of the webserver container running in the untrusted pod:
 CONTAINER_ID=$(sudo crictl -r unix:///var/run/containerd/containerd.sock \
-    ps -p ${POD_ID} -q)
+  ps -p "$POD_ID" -q)
 
 # Use the gVisor runsc command to display the processes running inside the webserver container:
-sudo runsc --root /run/containerd/runsc/k8s.io ps ${CONTAINER_ID}
+sudo runsc --root /run/containerd/runsc/k8s.io ps "$CONTAINER_ID"

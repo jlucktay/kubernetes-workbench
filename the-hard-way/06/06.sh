@@ -2,7 +2,7 @@
 
 ENCRYPTION_KEY=$(head -c 32 /dev/urandom | base64)
 
-cat > encryption-config.yaml <<EOF
+cat > encryption-config.yaml << EOF
 kind: EncryptionConfig
 apiVersion: v1
 resources:
@@ -17,5 +17,5 @@ resources:
 EOF
 
 for instance in controller-0 controller-1 controller-2; do
-    gcloud compute scp encryption-config.yaml ${instance}:~/
+  gcloud compute scp encryption-config.yaml "$instance":~/
 done
