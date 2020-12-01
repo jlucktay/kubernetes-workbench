@@ -2,20 +2,22 @@
 set -euo pipefail
 
 ScriptName=$(basename "$0")
-ScriptDirectory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+ScriptDirectory="$(cd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null && pwd)"
 
 ### Get flags ready to parse given arguments
 YES=0
 
 for i in "$@"; do
-    case $i in
-        -y|--yes)
-            YES=1
-            shift;;
-        *) # unknown option
-            echo "$ScriptName: unknown argument '$i'."
-            exit 1;;
-    esac
+  case $i in
+    -y | --yes)
+      YES=1
+      shift
+      ;;
+    *) # unknown option
+      echo "$ScriptName: unknown argument '$i'."
+      exit 1
+      ;;
+  esac
 done
 
 # shellcheck source=./export.sh
@@ -27,7 +29,7 @@ IFS="," KopsArgs+=("--zones=${ZONES[*]}")
 KopsArgs+=("--node-count=$NODE_COUNT" "$CLUSTER_NAME")
 
 if [ "$YES" == 1 ]; then
-    KopsArgs+=(--yes)
+  KopsArgs+=(--yes)
 fi
 
 ### Show arguments and execute with them

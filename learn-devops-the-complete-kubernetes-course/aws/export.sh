@@ -6,7 +6,7 @@ ScriptName=$(basename "$0")
 
 ### Set up usage/help output
 function usage() {
-    cat << HEREDOC
+  cat << HEREDOC
 
     Usage: $ScriptName [--help] [--kops] [-n=X|--nodes-per-zone=X] [-r=X|--aws-region=X] [-z=X|--zone-count=X]
 
@@ -32,36 +32,44 @@ NODES_PER_ZONE=3
 ZONE_COUNT=1
 
 for i in "$@"; do
-    case $i in
-        -k|--kops)
-            KOPS=1
-            shift;; # past argument
-        -n=*|--nodes-per-zone=*)
-            NODES_PER_ZONE="${i#*=}"
-            shift;; # past argument=value
-        -r=*|--aws-region=*)
-            AWS_REGION="${i#*=}"
-            shift;; # past argument=value
-        -z=*|--zone-count=*)
-            ZONE_COUNT="${i#*=}"
-            shift;; # past argument=value
-        -h|--help)
-            usage
-            exit 0;;
-        *) # unknown option
-            echo "$ScriptName unknown argument '$i'."
-            usage
-            exit 1;;
-    esac
+  case $i in
+    -k | --kops)
+      KOPS=1
+      shift
+      ;; # past argument
+    -n=* | --nodes-per-zone=*)
+      NODES_PER_ZONE="${i#*=}"
+      shift
+      ;; # past argument=value
+    -r=* | --aws-region=*)
+      AWS_REGION="${i#*=}"
+      shift
+      ;; # past argument=value
+    -z=* | --zone-count=*)
+      ZONE_COUNT="${i#*=}"
+      shift
+      ;; # past argument=value
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    *) # unknown option
+      echo "$ScriptName unknown argument '$i'."
+      usage
+      exit 1
+      ;;
+  esac
 done
 
 # Validate argument number values
 NumberRegEx='^[0-9]+$'
-if ! [[ "$NODES_PER_ZONE" =~ $NumberRegEx ]]; then
-    echo "$ScriptName error: '$NODES_PER_ZONE' is not a number" >&2; exit 1
+if ! [[ "$NODES_PER_ZONE" =~ "$NumberRegEx" ]]; then
+  echo "$ScriptName error: '$NODES_PER_ZONE' is not a number" >&2
+  exit 1
 fi
-if ! [[ "$ZONE_COUNT" =~ $NumberRegEx ]]; then
-    echo "$ScriptName error: '$ZONE_COUNT' is not a number" >&2; exit 1
+if ! [[ "$ZONE_COUNT" =~ "$NumberRegEx" ]]; then
+  echo "$ScriptName error: '$ZONE_COUNT' is not a number" >&2
+  exit 1
 fi
 
 ### AWS
@@ -77,26 +85,26 @@ export KOPS_STATE_STORE="s3://$KOPS_S3_BUCKET"
 set +eu
 
 # Select/auth the desired set of credentials
-if (( KOPS == 1 )); then
-    AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id --profile "$AWS_DEFAULT_PROFILE")
-    export AWS_ACCESS_KEY_ID
-    AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key --profile "$AWS_DEFAULT_PROFILE")
-    export AWS_SECRET_ACCESS_KEY
+if ((KOPS == 1)); then
+  AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id --profile "$AWS_DEFAULT_PROFILE")
+  export AWS_ACCESS_KEY_ID
+  AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key --profile "$AWS_DEFAULT_PROFILE")
+  export AWS_SECRET_ACCESS_KEY
 
-    export AWS_DEFAULT_PROFILE=crlab-kops
+  export AWS_DEFAULT_PROFILE=crlab-kops
 else
-    echo "Refreshing AWS token with Google SSO..."
-    aws-google-auth -p cr-labs-master
-    export AWS_DEFAULT_PROFILE=cr-labs-jlucktay
+  echo "Refreshing AWS token with Google SSO..."
+  aws-google-auth -p cr-labs-master
+  export AWS_DEFAULT_PROFILE=cr-labs-jlucktay
 fi
 
 # Check AZs in target region
-mapfile -t AvailableZones < <( aws ec2 describe-availability-zones --region "$AWS_REGION" \
-    | jq --raw-output '.AvailabilityZones[].ZoneName' )
+mapfile -t AvailableZones < <(aws ec2 describe-availability-zones --region "$AWS_REGION" \
+  | jq --raw-output '.AvailabilityZones[].ZoneName')
 
 # Take highest of ZONE_COUNT and len(AvailableZones), and slice this many elements from AvailableZones
-ZoneLen=$(( ZONE_COUNT > ${#AvailableZones[@]} ? ZONE_COUNT : ${#AvailableZones[@]} ))
-export ZONES=("${AvailableZones[@]:0:${ZoneLen}}")
+ZoneLen=$((ZONE_COUNT > ${#AvailableZones[@]} ? ZONE_COUNT : ${#AvailableZones[@]}))
+export ZONES=("${AvailableZones[@]:0:ZoneLen}")
 
 # X nodes per zone
-export NODE_COUNT=$(( ${#ZONES[@]} * NODES_PER_ZONE ))
+export NODE_COUNT=$((${#ZONES[@]} * NODES_PER_ZONE))

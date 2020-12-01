@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+ScriptDirectory="$(cd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null && pwd)"
+
 # shellcheck source=./export.sh
 . "$(realpath "$ScriptDirectory/export.sh")"
 
@@ -16,8 +18,8 @@ echo "SecurityGroupId: $SecurityGroupId"
 LifeCycleState=
 
 until [ "$LifeCycleState" == "available" ]; do
-    LifeCycleState=$(aws efs describe-file-systems --file-system-id "$FileSystemId" | jq -r '.FileSystems[].LifeCycleState')
-    echo "LifeCycleState: $LifeCycleState"
+  LifeCycleState=$(aws efs describe-file-systems --file-system-id "$FileSystemId" | jq -r '.FileSystems[].LifeCycleState')
+  echo "LifeCycleState: $LifeCycleState"
 done
 
 aws efs create-mount-target --file-system-id "$FileSystemId" --subnet-id "$SubnetId" --security-groups "$SecurityGroupId"
