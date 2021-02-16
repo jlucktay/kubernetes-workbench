@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: secure-app
+    sandbox: ckad-7-2
+  namespace: acg-ckad
+  name: network-policy-secure-pod
+spec:
+  containers:
+    - name: nginx
+      image: nginx:1
+      resources:
+        limits:
+          cpu: 500m
+          memory: 128Mi
+      ports:
+        - containerPort: 80

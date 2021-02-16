@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    sandbox: ckad-7-2
+  namespace: acg-ckad
+  name: my-network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: secure-app
+      sandbox: ckad-7-2
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              allow-access: "true"
+      ports:
+        - protocol: TCP
+          port: 80
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              allow-access: "true"
+      ports:
+        - protocol: TCP
+          port: 80
