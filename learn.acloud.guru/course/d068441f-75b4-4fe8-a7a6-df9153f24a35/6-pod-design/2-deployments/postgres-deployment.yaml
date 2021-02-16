@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-postgres-deployment
+  labels:
+    sandbox: ckad-6-2
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: postgres
+      sandbox: ckad-6-2
+  template:
+    metadata:
+      labels:
+        app: postgres
+        sandbox: ckad-6-2
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:13
+          ports:
+            - containerPort: 5432
+          resources:
+            limits:
+              cpu: 250m
+              memory: 256Mi
+          env:
+            - name: POSTGRES_HOST_AUTH_METHOD
+              value: trust
