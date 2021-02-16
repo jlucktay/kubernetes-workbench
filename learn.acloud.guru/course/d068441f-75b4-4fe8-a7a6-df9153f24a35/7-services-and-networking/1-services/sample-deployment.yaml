@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    sandbox: ckad-7-1
+  name: nginx-deployment
+  namespace: acg-ckad
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+      sandbox: ckad-7-1
+  template:
+    metadata:
+      labels:
+        app: nginx
+        sandbox: ckad-7-1
+      namespace: acg-ckad
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 80
