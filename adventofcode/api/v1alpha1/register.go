@@ -1,3 +1,4 @@
+// Package v1alpha1 defines this version of custom resources.
 package v1alpha1
 
 import (
@@ -7,15 +8,22 @@ import (
 )
 
 const (
-	GroupName    = "k8s.jlucktay.dev"
+	// GroupName is the name of the API group of custom resources defined here.
+	GroupName = "k8s.jlucktay.dev"
+
+	// GroupVersion is the version of the custom resources defined here.
 	GroupVersion = "v1alpha1"
 )
 
+// SchemaGroupVersion holds the Group and Version to uniquely identify the API.
 var SchemaGroupVersion = schema.GroupVersion{Group: GroupName, Version: GroupVersion}
 
 var (
+	// SchemeBuilder helps register new types.
 	SchemeBuilder = runtime.NewSchemeBuilder(addKnownTypes)
-	AddToScheme   = SchemeBuilder.AddToScheme
+
+	// AddToScheme is a registration shortcut for our types.
+	AddToScheme = SchemeBuilder.AddToScheme
 )
 
 func addKnownTypes(scheme *runtime.Scheme) error {

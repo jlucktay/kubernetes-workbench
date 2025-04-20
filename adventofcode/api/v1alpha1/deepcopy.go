@@ -2,6 +2,7 @@ package v1alpha1
 
 import "k8s.io/apimachinery/pkg/runtime"
 
+// DeepCopyInto one AdventSolver to another.
 func (in *AdventSolver) DeepCopyInto(out *AdventSolver) {
 	out.TypeMeta = in.TypeMeta
 	out.ObjectMeta = in.ObjectMeta
@@ -10,6 +11,7 @@ func (in *AdventSolver) DeepCopyInto(out *AdventSolver) {
 	}
 }
 
+// DeepCopyObject one AdventSolver to another.
 func (in *AdventSolver) DeepCopyObject() runtime.Object {
 	out := AdventSolver{}
 	in.DeepCopyInto(&out)
@@ -17,6 +19,7 @@ func (in *AdventSolver) DeepCopyObject() runtime.Object {
 	return &out
 }
 
+// DeepCopyObject an AdventSolverList to a generalised object interface.
 func (in *AdventSolverList) DeepCopyObject() runtime.Object {
 	out := AdventSolverList{}
 	out.TypeMeta = in.TypeMeta
