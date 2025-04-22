@@ -15,19 +15,19 @@ func getDeploymentObject(name string, image string, replicas int32) *appsv1.Depl
 			Replicas: int32Ptr(replicas),
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"app": "adventsolver",
+					"app": "adventpuzzle",
 				},
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
-						"app": "adventsolver",
+						"app": "adventpuzzle",
 					},
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
-							Name:  "adventsolver",
+							Name:  "adventpuzzle",
 							Image: image,
 							Ports: []corev1.ContainerPort{
 								{

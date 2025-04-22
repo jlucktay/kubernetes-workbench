@@ -86,7 +86,7 @@ func main() {
 	setupLog.Info("creating controller")
 
 	err = ctrl.NewControllerManagedBy(mgr).
-		For(&aokv1alpha1.AdventSolver{}).
+		For(&aokv1alpha1.AdventPuzzle{}).
 		Complete(&reconciler{
 			Client:     mgr.GetClient(),
 			scheme:     mgr.GetScheme(),

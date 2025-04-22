@@ -28,8 +28,8 @@ var (
 
 func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(SchemaGroupVersion,
-		&AdventSolver{},
-		&AdventSolverList{},
+		&AdventPuzzle{},
+		&AdventPuzzleList{},
 	)
 
 	metav1.AddToGroupVersion(scheme, SchemaGroupVersion)

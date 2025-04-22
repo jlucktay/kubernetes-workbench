@@ -24,42 +24,49 @@ type reconciler struct {
 }
 
 func (r *reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := log.FromContext(ctx).WithValues("adventsolver", req.NamespacedName)
-	log.Info("reconciling AdventSolver")
+	log := log.FromContext(ctx).WithValues("adventpuzzle", req.NamespacedName)
+	log.Info("reconciling AdventPuzzle")
 
 	// Create the Deployment if it does not exist.
 	deploymentsClient := r.kubeClient.AppsV1().Deployments(req.Namespace)
 	configMapsClient := r.kubeClient.CoreV1().ConfigMaps(req.Namespace)
 
-	adventSolverName := "adventsolver-" + req.Name
+	adventPuzzleName := "adventpuzzle-" + req.Name
 
-	var adventSolver aokv1alpha1.AdventSolver
-	err := r.Get(ctx, req.NamespacedName, &adventSolver)
+	var adventPuzzle aokv1alpha1.AdventPuzzle
+
+	log.Info("getting AdventPuzzle named '" + req.String() + "'")
+
+	err := r.Get(ctx, req.NamespacedName, &adventPuzzle)
 	if err != nil {
 		if !k8serrors.IsNotFound(err) {
-			return ctrl.Result{}, fmt.Errorf("getting AdventSolver: %w", err)
+			return ctrl.Result{}, fmt.Errorf("getting AdventPuzzle: %w", err)
 		}
 
-		// AdventSolver was not found, so we can delete the associated resources.
+		// AdventPuzzle was not found, so we can delete the associated resources.
 
-		if err := deploymentsClient.Delete(ctx, adventSolverName, metav1.DeleteOptions{}); err != nil {
+		if err := deploymentsClient.Delete(ctx, adventPuzzleName, metav1.DeleteOptions{}); err != nil {
 			return ctrl.Result{}, fmt.Errorf("deleting Deployment: %w", err)
 		}
 
-		if err := configMapsClient.Delete(ctx, adventSolverName, metav1.DeleteOptions{}); err != nil {
+		if err := configMapsClient.Delete(ctx, adventPuzzleName, metav1.DeleteOptions{}); err != nil {
 			return ctrl.Result{}, fmt.Errorf("deleting ConfigMap: %w", err)
 		}
+
+		log.Info("deleted resources associated with AdventPuzzle named '" + adventPuzzleName + "'")
 
 		return ctrl.Result{}, nil
 	}
 
-	deployment, err := deploymentsClient.Get(ctx, adventSolverName, metav1.GetOptions{})
+	log.Info("getting Deployment associated with AdventPuzzle named '" + adventPuzzleName + "'")
+
+	deployment, err := deploymentsClient.Get(ctx, adventPuzzleName, metav1.GetOptions{})
 	if err != nil {
 		if !k8serrors.IsNotFound(err) {
 			return ctrl.Result{}, fmt.Errorf("getting Deployment: %w", err)
 		}
 
-		configMapObj := getConfigMapObject(adventSolverName, adventSolver.Spec.Input)
+		configMapObj := getConfigMapObject(adventPuzzleName, adventPuzzle.Spec.Input)
 
 		if _, err := configMapsClient.Create(ctx, configMapObj, metav1.CreateOptions{}); err != nil && !k8serrors.IsAlreadyExists(err) {
 			return ctrl.Result{}, fmt.Errorf("creating ConfigMap: %w", err)
@@ -76,8 +83,12 @@ func (r *reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 			return ctrl.Result{}, fmt.Errorf("creating Deployment: %w", err)
 		}
 
+		log.Info("new AdventPuzzle with name '" + adventPuzzleName + "' created")
+
 		return ctrl.Result{}, nil
 	}
+
+	log.Info("updating Deployment associated with AdventPuzzle named '" + adventPuzzleName + "'")
 
 	// The Deployment has been found, so let's see if we need to update it.
 	if int(*deployment.Spec.Replicas) != int(adventPuzzle.Spec.Day) {
@@ -94,12 +105,12 @@ func (r *reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 			return ctrl.Result{}, fmt.Errorf("updating Deployment: %w", err)
 		}
 
-		log.Info("AdventSolver with name '" + adventSolverName + "' updated")
+		log.Info("AdventPuzzle with name '" + adventPuzzleName + "' updated")
 
 		return ctrl.Result{}, nil
 	}
 
-	log.Info("AdventSolver '" + adventSolverName + "' is up-to-date")
+	log.Info("AdventPuzzle '" + adventPuzzleName + "' is up-to-date")
 
 	return ctrl.Result{}, nil
 }
