@@ -22,7 +22,7 @@ func main() {
 	}
 
 	schema := reflector.Reflect(&aokv1alpha1.AdventPuzzle{})
-	schema.ID = "https://github.com/jlucktay/kubernetes-workbench/blob/main/adventofcode/advent-puzzle.schema.json"
+	schema.ID = "https://github.com/jlucktay/kubernetes-workbench/raw/refs/heads/main/adventofcode/advent-puzzle.schema.json"
 
 	enc := json.NewEncoder(os.Stdout)
 	enc.SetIndent("", "  ")

@@ -1,11 +1,14 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/jlucktay/kubernetes-workbench/blob/main/adventofcode/advent-puzzle.schema.json",
+  "$id": "https://github.com/jlucktay/kubernetes-workbench/raw/refs/heads/main/adventofcode/advent-puzzle.schema.json",
   "$defs": {
     "AdventPuzzleSpec": {
       "properties": {
         "year": {
-          "type": "integer"
+          "type": "integer",
+          "maximum": 2024,
+          "minimum": 2015,
+          "description": "Year will be between 2015 and that of the most recent/current December (inclusive)."
         },
         "day": {
           "type": "integer"
