@@ -6,11 +6,13 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func getDeploymentObject(name string, image string, replicas int) *appsv1.Deployment {
+const containerPort = 80
+
+func getDeploymentObject(name string, image string, replicas int32) *appsv1.Deployment {
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{Name: name},
 		Spec: appsv1.DeploymentSpec{
-			Replicas: int32Ptr(int32(replicas)),
+			Replicas: int32Ptr(replicas),
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"app": "adventsolver",
@@ -31,7 +33,7 @@ func getDeploymentObject(name string, image string, replicas int) *appsv1.Deploy
 								{
 									Name:          "http",
 									Protocol:      corev1.ProtocolTCP,
-									ContainerPort: 80,
+									ContainerPort: containerPort,
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
