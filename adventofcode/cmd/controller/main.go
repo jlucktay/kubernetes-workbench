@@ -2,35 +2,19 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"os"
 	"path/filepath"
 
-	gjdv1alpha1 "go.jlucktay.dev/kubernetes-workbench/adventofcode/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
+	aokv1alpha1 "go.jlucktay.dev/kubernetes-workbench/adventofcode/api/v1alpha1"
 )
-
-type reconciler struct {
-	client.Client
-	scheme     *runtime.Scheme
-	kubeClient *kubernetes.Clientset
-}
-
-func (r *reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := log.FromContext(ctx).WithValues("adventsolver", req.NamespacedName)
-	log.Info("reconciling adventsolver")
-
-	//
-	return ctrl.Result{}, nil
-}
 
 func main() {
 	var (
@@ -42,7 +26,7 @@ func main() {
 
 	setupLog.Info("adding to scheme")
 
-	err = gjdv1alpha1.AddToScheme(scheme)
+	err = aokv1alpha1.AddToScheme(scheme)
 	if err != nil {
 		setupLog.Error(err, "adding to scheme")
 		os.Exit(1)
@@ -102,7 +86,7 @@ func main() {
 	setupLog.Info("creating controller")
 
 	err = ctrl.NewControllerManagedBy(mgr).
-		For(&gjdv1alpha1.AdventSolver{}).
+		For(&aokv1alpha1.AdventSolver{}).
 		Complete(&reconciler{
 			Client:     mgr.GetClient(),
 			scheme:     mgr.GetScheme(),
@@ -115,7 +99,7 @@ func main() {
 
 	setupLog.Info("starting manager")
 
-	if err = mgr.Start(ctrl.SetupSignalHandler()); err != nil {
+	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
 		setupLog.Error(err, "starting manager")
 		os.Exit(1)
 	}
