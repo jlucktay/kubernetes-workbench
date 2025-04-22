@@ -3,6 +3,7 @@ module go.jlucktay.dev/kubernetes-workbench/adventofcode
 go 1.24.2
 
 require (
+	github.com/invopop/jsonschema v0.13.0
 	k8s.io/api v0.31.7
 	k8s.io/apimachinery v0.31.7
 	k8s.io/client-go v0.31.7
@@ -10,7 +11,9 @@ require (
 )
 
 require (
+	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/buger/jsonparser v1.1.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/emicklei/go-restful/v3 v3.11.0 // indirect
@@ -41,6 +44,7 @@ require (
 	github.com/prometheus/common v0.55.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
