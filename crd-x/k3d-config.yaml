@@ -1,0 +1,14 @@
+---
+# yaml-language-server: $schema=https://github.com/k3d-io/k3d/raw/refs/heads/main/pkg/config/v1alpha5/schema.json
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+
+metadata:
+  name: aok
+
+image: rancher/k3s:v1.31.7-k3s1
+options:
+  k3d:
+    # Same as the `--no-lb` flag.
+    disableLoadbalancer: true
+servers: 1

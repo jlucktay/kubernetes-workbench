@@ -21,10 +21,10 @@ type AdventPuzzle struct {
 // AdventPuzzleSpec is the structure of the AdventPuzzle specification.
 type AdventPuzzleSpec struct {
 	// Year will be between 2015 and that of the most recent/current December (inclusive).
-	Year uint16 `json:"year" jsonschema:"minimum=2015,maximum=2024"`
+	Year uint16 `json:"year"`
 
 	// Day ranges from 1 to 31; the length of December.
-	Day uint8 `json:"day" jsonschema:"minimum=1,maximum=31"`
+	Day uint8 `json:"day"`
 
 	// Input of the day's puzzle.
 	Input string `json:"input"`

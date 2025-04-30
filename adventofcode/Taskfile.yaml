@@ -3,26 +3,7 @@ version: 3
 tasks:
   default: task --list-all
 
-  schema:build:
-    desc: Build the JSON Schema emitter for AdventPuzzle.
-    dir: '{{.TASKFILE_DIR}}'
-    sources:
-      - '{{.TASKFILE_DIR}}/cmd/schema/**/*.go'
-      - '{{.TASKFILE_DIR}}/api/**/*.go'
-    cmd: go build ./cmd/schema
-
   schema:update:
-    desc: Save the JSON Schema for AdventPuzzle to file.
-    vars:
-      JSON_SCHEMA: '{{.TASKFILE_DIR}}/advent-puzzle.schema.json'
-    sources:
-      - '{{.TASKFILE_DIR}}/cmd/schema/**/*.go'
-      - '{{.TASKFILE_DIR}}/api/**/*.go'
-    generates:
-      - '{{.JSON_SCHEMA}}'
-    method: timestamp
-    deps:
-      - task: schema:build
-    # Must be run from the directory above so that it can properly locate Go source files.
-    dir: '{{osDir .TASKFILE_DIR}}'
-    cmd: ./adventofcode/schema > "{{.JSON_SCHEMA}}"
+    desc: Update the JSON Schema file for AdventPuzzle, by exporting the CRD from an ephemeral cluster.
+    dir: '{{.TASKFILE_DIR}}'
+    cmd: ../crd-x/update-schema.sh
