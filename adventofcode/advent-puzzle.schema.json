@@ -11,10 +11,14 @@
           "description": "Year will be between 2015 and that of the most recent/current December (inclusive)."
         },
         "day": {
-          "type": "integer"
+          "type": "integer",
+          "maximum": 31,
+          "minimum": 1,
+          "description": "Day ranges from 1 to 31; the length of December."
         },
         "input": {
-          "type": "string"
+          "type": "string",
+          "description": "Input of the day's puzzle."
         }
       },
       "additionalProperties": false,

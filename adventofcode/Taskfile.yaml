@@ -16,6 +16,7 @@ tasks:
     vars:
       JSON_SCHEMA: '{{.TASKFILE_DIR}}/advent-puzzle.schema.json'
     sources:
+      - '{{.TASKFILE_DIR}}/cmd/schema/**/*.go'
       - '{{.TASKFILE_DIR}}/api/**/*.go'
     generates:
       - '{{.JSON_SCHEMA}}'
