@@ -2,24 +2,24 @@ package v1alpha1
 
 import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-// AdventPuzzleList is a list of AdventPuzzles.
-type AdventPuzzleList struct {
+// PuzzleList is a list of Puzzles.
+type PuzzleList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitzero"`
 
-	Items []AdventPuzzle `json:"items"`
+	Items []Puzzle `json:"items"`
 }
 
-// AdventPuzzle represents an Advent of Code puzzle, that this operator will attempt to solve.
-type AdventPuzzle struct {
+// Puzzle represents an Advent of Code (https://adventofcode.com) puzzle, that this operator will attempt to solve.
+type Puzzle struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitzero"`
 
-	Spec AdventPuzzleSpec `json:"spec"`
+	Spec PuzzleSpec `json:"spec"`
 }
 
-// AdventPuzzleSpec is the structure of the AdventPuzzle specification.
-type AdventPuzzleSpec struct {
+// PuzzleSpec is the structure of the Puzzle specification.
+type PuzzleSpec struct {
 	// Year will be between 2015 and that of the most recent/current December (inclusive).
 	Year uint16 `json:"year"`
 

@@ -4,7 +4,7 @@ tasks:
   default: task --list-all
 
   schema:update:
-    desc: Update the JSON Schema file for AdventPuzzle, by exporting the CRD from an ephemeral cluster.
+    desc: Update the JSON Schema files for Kinds in the adventofcode.jlucktay.dev Group, by passing the CRDs through an ephemeral cluster.
     interactive: true
     dir: '{{.TASKFILE_DIR}}'
     cmd: ../crd-x/update-schema.sh

@@ -9,7 +9,7 @@ import (
 
 const (
 	// GroupName is the name of the API group of custom resources defined here.
-	GroupName = "k8s.jlucktay.dev"
+	GroupName = "adventofcode.jlucktay.dev"
 
 	// GroupVersion is the version of the custom resources defined here.
 	GroupVersion = "v1alpha1"
@@ -28,8 +28,8 @@ var (
 
 func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(SchemaGroupVersion,
-		&AdventPuzzle{},
-		&AdventPuzzleList{},
+		&Puzzle{},
+		&PuzzleList{},
 	)
 
 	metav1.AddToGroupVersion(scheme, SchemaGroupVersion)

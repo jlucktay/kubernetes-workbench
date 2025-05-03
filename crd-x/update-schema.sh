@@ -67,10 +67,10 @@ readonly k3d_server="https://k3d-$k3d_cluster_name-server-0:6443"
 k3d_kubeconfig="$(mktemp)"
 kubectl --context="k3d-$k3d_cluster_name" config view --minify --raw | yq ".clusters[].cluster.server = \"$k3d_server\"" > "$k3d_kubeconfig"
 
-# Apply the AdventPuzzle CRD to the cluster.
-declare crd_yaml
-crd_yaml=$(realpath "../adventofcode/yaml/crd.yaml")
-kubectl --context="k3d-$k3d_cluster_name" apply --filename="$crd_yaml"
+# Apply the CRDs to the cluster.
+declare yaml_dir
+yaml_dir=$(realpath "../adventofcode/yaml")
+kubectl --context="k3d-$k3d_cluster_name" apply --filename="$yaml_dir"/crd.*.yaml
 
 # Set up the schema output directory.
 declare schema_dir

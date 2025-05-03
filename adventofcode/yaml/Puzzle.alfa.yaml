@@ -1,0 +1,12 @@
+---
+# yaml-language-server: $schema=https://github.com/jlucktay/kubernetes-workbench/raw/refs/heads/main/adventofcode/schema/adventofcode.jlucktay.dev_puzzle_v1alpha1.json
+apiVersion: adventofcode.jlucktay.dev/v1alpha1
+kind: Puzzle
+
+metadata:
+  name: alfa
+
+spec:
+  year: 2015
+  day: 1
+  input: asdf

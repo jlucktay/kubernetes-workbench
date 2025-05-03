@@ -1,13 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-readonly ap_crd="adventpuzzles.k8s.jlucktay.dev"
+aoc_group=$(kubectl api-resources --api-group=adventofcode.jlucktay.dev --no-headers --output=name)
+mapfile -t aoc_kinds <<< "$aoc_group"
 
-kubectl get customresourcedefinitions.apiextensions.k8s.io "$ap_crd" --output=yaml > "/tmp/$ap_crd.yaml"
+# Read by openapi2jsonschema.py below.
+export FILENAME_FORMAT="{fullgroup}_{kind}_{version}"
+
+for kind in "${aoc_kinds[@]}"; do
+  kubectl get customresourcedefinitions.apiextensions.k8s.io "$kind" --output=yaml > "/tmp/$kind.yaml"
+done
 
 cd /schema
-export FILENAME_FORMAT="{fullgroup}_{kind}_{version}"
-python3 /work/openapi2jsonschema.py "/tmp/$ap_crd.yaml"
+python3 /work/openapi2jsonschema.py /tmp/*.yaml
 
 readonly id_prefix="https://github.com/jlucktay/kubernetes-workbench/raw/refs/heads/main/adventofcode/schema/"
 readonly schema_draft="https://json-schema.org/draft-07/schema"

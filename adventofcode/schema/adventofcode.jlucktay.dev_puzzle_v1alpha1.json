@@ -1,7 +1,7 @@
 {
-  "$id": "https://github.com/jlucktay/kubernetes-workbench/raw/refs/heads/main/adventofcode/schema/k8s.jlucktay.dev_adventpuzzle_v1alpha1.json",
+  "$id": "https://github.com/jlucktay/kubernetes-workbench/raw/refs/heads/main/adventofcode/schema/adventofcode.jlucktay.dev_puzzle_v1alpha1.json",
   "$schema": "https://json-schema.org/draft-07/schema",
-  "description": "AdventPuzzle represents an Advent of Code puzzle, that the AOK operator will attempt to answer.",
+  "description": "Puzzle represents an Advent of Code (https://adventofcode.com) puzzle, that the AOK operator will (attempt to) solve and answer.",
   "properties": {
     "apiVersion": {
       "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and may reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
