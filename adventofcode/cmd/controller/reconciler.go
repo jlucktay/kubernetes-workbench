@@ -37,8 +37,7 @@ func (r *reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 
 	log.Info("getting Puzzle named '" + req.String() + "'")
 
-	err := r.Get(ctx, req.NamespacedName, &puzzle)
-	if err != nil {
+	if err := r.Get(ctx, req.NamespacedName, &puzzle); err != nil {
 		if !k8serrors.IsNotFound(err) {
 			return ctrl.Result{}, fmt.Errorf("getting Puzzle: %w", err)
 		}
@@ -100,8 +99,7 @@ func (r *reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 		}
 		// 🚧🚧🚧 special fuzzy temporary math going on here
 
-		_, err := deploymentsClient.Update(ctx, deployment, metav1.UpdateOptions{})
-		if err != nil {
+		if _, err := deploymentsClient.Update(ctx, deployment, metav1.UpdateOptions{}); err != nil {
 			return ctrl.Result{}, fmt.Errorf("updating Deployment: %w", err)
 		}
 

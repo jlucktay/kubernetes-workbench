@@ -8,15 +8,15 @@ import (
 )
 
 const (
-	// GroupName is the name of the API group of custom resources defined here.
-	GroupName = "adventofcode.jlucktay.dev"
+	// Group is the name of the API group of custom resources defined here.
+	Group = "adventofcode.jlucktay.dev"
 
-	// GroupVersion is the version of the custom resources defined here.
-	GroupVersion = "v1alpha1"
+	// Version of the custom resources defined here.
+	Version = "v1alpha1"
 )
 
 // SchemaGroupVersion holds the Group and Version to uniquely identify the API.
-var SchemaGroupVersion = schema.GroupVersion{Group: GroupName, Version: GroupVersion}
+var SchemaGroupVersion = schema.GroupVersion{Group: Group, Version: Version}
 
 var (
 	// SchemeBuilder helps register new types.
