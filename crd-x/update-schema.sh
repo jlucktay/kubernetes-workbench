@@ -57,7 +57,7 @@ for deployment in coredns local-path-provisioner metrics-server traefik; do
     sleep 1
   done
 
-  echo " ✅ OK"
+  echo "= ✅ OK"
 done
 
 # Set name/IP of server container.
