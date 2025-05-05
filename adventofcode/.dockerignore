@@ -1,0 +1,6 @@
+# Start by ignoring everything, then set exceptions to allow specific file/directory patterns into the build context.
+# This helps to keep the image size down to a minimum.
+*
+!/go.mod
+!/go.sum
+!/**/*.go
