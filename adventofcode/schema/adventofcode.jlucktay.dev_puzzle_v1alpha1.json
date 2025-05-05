@@ -13,7 +13,7 @@
     },
     "spec": {
       "additionalProperties": false,
-      "description": "spec describes how the user wants the resources to appear.",
+      "description": "PuzzleSpec describes how the Puzzle resource will appear.",
       "properties": {
         "day": {
           "description": "Day ranges from 1 to 31; the length of December.",

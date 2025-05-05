@@ -13,11 +13,29 @@
     },
     "spec": {
       "additionalProperties": false,
-      "description": "spec describes how the user wants the resources to appear.",
+      "description": "AnswerSpec describes how the Answer resource will appear.",
       "properties": {
-        "answer": {
-          "description": "Answer to the day's puzzle.",
-          "type": "string"
+        "answers": {
+          "description": "Answers to both parts of the day's puzzle.",
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "partOne": {
+                "description": "PartOne answer to the day's puzzle.",
+                "type": "string"
+              },
+              "partTwo": {
+                "description": "PartTwo answer to the day's puzzle.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "partOne",
+              "partTwo"
+            ],
+            "type": "string"
+          },
+          "type": "array"
         },
         "day": {
           "description": "Day ranges from 1 to 31; the length of December.",

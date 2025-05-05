@@ -10,6 +10,9 @@ spec:
   names:
     kind: Answer
     plural: answers
+    categories:
+      - all
+      - aoc
   scope: Namespaced
   versions:
     - name: v1alpha1
@@ -35,7 +38,7 @@ spec:
               type: string
             spec:
               type: object
-              description: spec describes how the user wants the resources to appear.
+              description: AnswerSpec describes how the Answer resource will appear.
               properties:
                 year:
                   type: integer
@@ -47,9 +50,21 @@ spec:
                   description: Day ranges from 1 to 31; the length of December.
                   minimum: 1
                   maximum: 31
-                answer:
-                  type: string
-                  description: Answer to the day's puzzle.
+                answers:
+                  type: array
+                  description: Answers to both parts of the day's puzzle.
+                  items:
+                    type: string
+                    properties:
+                      partOne:
+                        type: string
+                        description: PartOne answer to the day's puzzle.
+                      partTwo:
+                        type: string
+                        description: PartTwo answer to the day's puzzle.
+                    required:
+                      - partOne
+                      - partTwo
               required:
                 - year
                 - day

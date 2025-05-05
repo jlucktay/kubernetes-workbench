@@ -28,8 +28,8 @@ var (
 
 func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(SchemaGroupVersion,
-		&Puzzle{},
-		&PuzzleList{},
+		&Puzzle{}, &PuzzleList{},
+		&Answer{}, &AnswerList{},
 	)
 
 	metav1.AddToGroupVersion(scheme, SchemaGroupVersion)

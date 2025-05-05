@@ -10,6 +10,9 @@ spec:
   names:
     kind: Puzzle
     plural: puzzles
+    categories:
+      - all
+      - aoc
   scope: Namespaced
   versions:
     - name: v1alpha1
@@ -35,7 +38,7 @@ spec:
               type: string
             spec:
               type: object
-              description: spec describes how the user wants the resources to appear.
+              description: PuzzleSpec describes how the Puzzle resource will appear.
               properties:
                 year:
                   type: integer

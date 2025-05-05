@@ -6,9 +6,7 @@ import "k8s.io/apimachinery/pkg/runtime"
 func (in *Puzzle) DeepCopyInto(out *Puzzle) {
 	out.TypeMeta = in.TypeMeta
 	out.ObjectMeta = in.ObjectMeta
-	out.Spec = PuzzleSpec{
-		Input: in.Spec.Input,
-	}
+	out.Spec = in.Spec
 }
 
 // DeepCopyObject one Puzzle to another.
