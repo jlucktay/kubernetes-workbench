@@ -24,6 +24,8 @@ func main() {
 		err    error
 	)
 
+	ctrl.SetLogger(zap.New())
+
 	setupLog.Info("adding to scheme")
 
 	err = aokv1alpha1.AddToScheme(scheme)
@@ -70,8 +72,6 @@ func main() {
 		setupLog.Error(err, "creating clientset for config")
 		os.Exit(1)
 	}
-
-	ctrl.SetLogger(zap.New())
 
 	setupLog.Info("creating manager")
 
