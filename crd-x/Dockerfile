@@ -6,6 +6,8 @@ LABEL org.opencontainers.image.source=https://github.com/jlucktay/kubernetes-wor
 ARG KUBECTL_VERSION="1.31"
 ARG KUBECTL_VERSION_LONG="1.31.8-1.1"
 
+VOLUME [ "/schema" ]
+
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Update the apt package index and install packages needed to use the Kubernetes apt repository and the entrypoint/conversion scripts:
@@ -43,10 +45,8 @@ RUN apt-get update \
   && apt-get clean \
   && rm --force --recursive /var/lib/apt/lists/*
 
-WORKDIR /work
+RUN curl --location --output /bin/openapi2jsonschema.py https://github.com/yannh/kubeconform/raw/6ae8c45bc156ceeb1d421e9b217cfc0c7ba5828d/scripts/openapi2jsonschema.py
 
-RUN curl --location --output openapi2jsonschema.py https://github.com/yannh/kubeconform/raw/6ae8c45bc156ceeb1d421e9b217cfc0c7ba5828d/scripts/openapi2jsonschema.py
+COPY entrypoint.sh /bin/entrypoint.sh
 
-COPY entrypoint.sh entrypoint.sh
-
-ENTRYPOINT [ "./entrypoint.sh" ]
+ENTRYPOINT [ "/bin/entrypoint.sh" ]

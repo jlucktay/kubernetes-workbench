@@ -60,21 +60,25 @@ for deployment in coredns local-path-provisioner metrics-server traefik; do
   echo "= ✅ OK"
 done
 
+# Apply the CRDs to the cluster.
+declare yaml_dir
+yaml_dir=$(realpath "../adventofcode/yaml")
+kubectl --context="k3d-$k3d_cluster_name" apply --filename="$yaml_dir"/crd.*.yaml
+
 # Set name/IP of server container.
+# Since this is a container-to-container connection on the same network (see 'docker run --network=...' flag below):
+# 1. the worker container can use the name of the control plane server container, and will be able to resolve its IP address.
+# 2. the port is not the randomised port that Docker externalises, but that of the control plane itself inside the server container.
+# Thank you: https://rancher-users.slack.com/archives/CHM1EB3A7/p1745957501473809
 readonly k3d_server="https://k3d-$k3d_cluster_name-server-0:6443"
 
 # Transform kubeconfig with K3D server address.
 k3d_kubeconfig="$(mktemp)"
 kubectl --context="k3d-$k3d_cluster_name" config view --minify --raw | yq ".clusters[].cluster.server = \"$k3d_server\"" > "$k3d_kubeconfig"
 
-# Apply the CRDs to the cluster.
-declare yaml_dir
-yaml_dir=$(realpath "../adventofcode/yaml")
-kubectl --context="k3d-$k3d_cluster_name" apply --filename="$yaml_dir"/crd.*.yaml
-
 # Set up the schema output directory.
 declare schema_dir
 schema_dir=$(realpath "../adventofcode/schema/")
 
-# Load yq output into worker container as its kubeconfig, and save the JSON Schema output.
+# Load the modified kubeconfig from yq's output into the worker container, and run it to update the JSON Schemas.
 docker run --network="k3d-$k3d_cluster_name" --rm --volume="$k3d_kubeconfig:/root/.kube/config:ro" --volume="$schema_dir:/schema/:rw" "$worker_image"
