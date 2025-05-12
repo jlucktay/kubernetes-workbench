@@ -17,10 +17,7 @@ done
 
 cd /schema
 
-# Read by openapi2jsonschema.py below.
-export FILENAME_FORMAT="{fullgroup}_{kind}_{version}"
-
-python3 /bin/openapi2jsonschema.py /tmp/*.yaml
+FILENAME_FORMAT="{fullgroup}_{kind}_{version}" python3 /bin/openapi2jsonschema.py /tmp/*.yaml
 
 readonly id_prefix="https://github.com/jlucktay/kubernetes-workbench/raw/refs/heads/main/adventofcode/schema/"
 readonly schema_draft="https://json-schema.org/draft-07/schema"
