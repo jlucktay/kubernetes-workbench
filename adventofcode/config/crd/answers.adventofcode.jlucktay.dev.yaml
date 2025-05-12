@@ -51,24 +51,22 @@ spec:
                   minimum: 1
                   maximum: 31
                 answers:
-                  type: array
+                  type: object
                   description: Answers to both parts of the day's puzzle.
-                  items:
-                    type: string
-                    properties:
-                      partOne:
-                        type: string
-                        description: PartOne answer to the day's puzzle.
-                      partTwo:
-                        type: string
-                        description: PartTwo answer to the day's puzzle.
-                    required:
-                      - partOne
-                      - partTwo
+                  properties:
+                    partOne:
+                      type: string
+                      description: PartOne answer to the day's puzzle.
+                    partTwo:
+                      type: string
+                      description: PartTwo answer to the day's puzzle.
+                  required:
+                    - partOne
+                    - partTwo
               required:
                 - year
                 - day
-                - answer
+                - answers
           required:
             - metadata
             - spec

@@ -16,26 +16,23 @@
       "description": "AnswerSpec describes how the Answer resource will appear.",
       "properties": {
         "answers": {
+          "additionalProperties": false,
           "description": "Answers to both parts of the day's puzzle.",
-          "items": {
-            "additionalProperties": false,
-            "properties": {
-              "partOne": {
-                "description": "PartOne answer to the day's puzzle.",
-                "type": "string"
-              },
-              "partTwo": {
-                "description": "PartTwo answer to the day's puzzle.",
-                "type": "string"
-              }
+          "properties": {
+            "partOne": {
+              "description": "PartOne answer to the day's puzzle.",
+              "type": "string"
             },
-            "required": [
-              "partOne",
-              "partTwo"
-            ],
-            "type": "string"
+            "partTwo": {
+              "description": "PartTwo answer to the day's puzzle.",
+              "type": "string"
+            }
           },
-          "type": "array"
+          "required": [
+            "partOne",
+            "partTwo"
+          ],
+          "type": "object"
         },
         "day": {
           "description": "Day ranges from 1 to 31; the length of December.",
@@ -53,7 +50,7 @@
       "required": [
         "year",
         "day",
-        "answer"
+        "answers"
       ],
       "type": "object"
     }

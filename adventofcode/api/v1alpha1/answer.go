@@ -32,8 +32,8 @@ type AnswerSpec struct {
 // Answers to both parts of the day's puzzle.
 type Answers struct {
 	// PartOne answer to the day's puzzle.
-	PartOne string
+	PartOne string `json:"partOne"`
 
 	// PartTwo answer to the day's puzzle.
-	PartTwo string
+	PartTwo string `json:"partTwo"`
 }
