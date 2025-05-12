@@ -61,9 +61,9 @@ for deployment in coredns local-path-provisioner metrics-server traefik; do
 done
 
 # Apply the CRDs to the cluster.
-declare yaml_dir
-yaml_dir=$(realpath "../adventofcode/yaml")
-kubectl --context="k3d-$k3d_cluster_name" apply --filename="$yaml_dir"/crd.*.yaml
+declare crd_dir
+crd_dir=$(realpath "../adventofcode/config/crd")
+kubectl --context="k3d-$k3d_cluster_name" apply --filename="$crd_dir"/*.yaml
 
 # Set name/IP of server container.
 # Since this is a container-to-container connection on the same network (see 'docker run --network=...' flag below):
