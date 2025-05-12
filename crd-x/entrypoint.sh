@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-aoc_group=$(kubectl api-resources --api-group=adventofcode.jlucktay.dev --no-headers --output=name)
-mapfile -t aoc_kinds <<< "$aoc_group"
+readonly api_group="adventofcode.jlucktay.dev"
+
+aoc_group=$(kubectl api-resources --api-group="$api_group" --no-headers --output=name)
+mapfile -t aoc_kinds < <(printf "%s" "$aoc_group")
+
+if [[ ${#aoc_kinds[@]} -eq 0 ]]; then
+  echo >&2 "❌ no API resources found in group '$api_group'"
+  exit 1
+fi
 
 for kind in "${aoc_kinds[@]}"; do
   kubectl get customresourcedefinitions.apiextensions.k8s.io "$kind" --output=yaml > "/tmp/$kind.yaml"
