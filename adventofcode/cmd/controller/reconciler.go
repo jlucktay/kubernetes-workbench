@@ -15,8 +15,6 @@ import (
 	aokv1alpha1 "go.jlucktay.dev/kubernetes-workbench/adventofcode/api/v1alpha1"
 )
 
-const replicaDivisor = 10
-
 type reconciler struct {
 	client.Client
 	scheme     *runtime.Scheme
@@ -27,12 +25,6 @@ func (r *reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 	log := log.FromContext(ctx).WithValues("puzzle", req.NamespacedName)
 	log.Info("reconciling Puzzle")
 
-	// Create the Deployment if it does not exist.
-	deploymentsClient := r.kubeClient.AppsV1().Deployments(req.Namespace)
-	configMapsClient := r.kubeClient.CoreV1().ConfigMaps(req.Namespace)
-
-	puzzleName := "puzzle-" + req.Name
-
 	var puzzle aokv1alpha1.Puzzle
 
 	log.Info("getting Puzzle named '" + req.String() + "'")
@@ -42,73 +34,51 @@ func (r *reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 			return ctrl.Result{}, fmt.Errorf("getting Puzzle: %w", err)
 		}
 
-		// Puzzle was not found, so we can delete the associated resources.
+		// Puzzle was not found, so we can delete the associated Answer resource.
 
-		if err := deploymentsClient.Delete(ctx, puzzleName, metav1.DeleteOptions{}); err != nil {
-			return ctrl.Result{}, fmt.Errorf("deleting Deployment: %w", err)
+		if err := r.Delete(ctx, &aokv1alpha1.Answer{ObjectMeta: metav1.ObjectMeta{Namespace: req.Namespace, Name: req.Name}}); err != nil {
+			return ctrl.Result{}, fmt.Errorf("deleting Answer: %w", err)
 		}
 
-		if err := configMapsClient.Delete(ctx, puzzleName, metav1.DeleteOptions{}); err != nil {
-			return ctrl.Result{}, fmt.Errorf("deleting ConfigMap: %w", err)
-		}
-
-		log.Info("deleted resources associated with Puzzle named '" + puzzleName + "'")
+		log.Info("deleted Answer associated with Puzzle named '" + req.String() + "'")
 
 		return ctrl.Result{}, nil
 	}
 
-	log.Info("getting Deployment associated with Puzzle named '" + puzzleName + "'")
+	log.Info("getting Answer associated with Puzzle named '" + req.String() + "'")
 
-	deployment, err := deploymentsClient.Get(ctx, puzzleName, metav1.GetOptions{})
-	if err != nil {
+	var answer aokv1alpha1.Answer
+
+	if err := r.Get(ctx, req.NamespacedName, &answer); err != nil {
 		if !k8serrors.IsNotFound(err) {
-			return ctrl.Result{}, fmt.Errorf("getting Deployment: %w", err)
+			return ctrl.Result{}, fmt.Errorf("getting Answer: %w", err)
 		}
 
-		configMapObj := getConfigMapObject(puzzleName, puzzle.Spec.Input)
+		answer = getAnswerObject(req.NamespacedName, puzzle.Spec.Year, puzzle.Spec.Day,
+			"part1 string", "part2 string") // TODO: calculate some solutions
 
-		if _, err := configMapsClient.Create(ctx, configMapObj, metav1.CreateOptions{}); err != nil && !k8serrors.IsAlreadyExists(err) {
-			return ctrl.Result{}, fmt.Errorf("creating ConfigMap: %w", err)
+		if err := r.Create(ctx, &answer); err != nil && !k8serrors.IsAlreadyExists(err) {
+			return ctrl.Result{}, fmt.Errorf("creating Answer: %w", err)
 		}
 
-		// 🚧🚧🚧 special fuzzy temporary math going on here
-		deploymentObj := getDeploymentObject(puzzleName, "bash:5", int32(puzzle.Spec.Day/replicaDivisor))
-		if *deploymentObj.Spec.Replicas <= 0 {
-			*deploymentObj.Spec.Replicas = 1
-		}
-		// 🚧🚧🚧 special fuzzy temporary math going on here
-
-		if _, err := deploymentsClient.Create(ctx, deploymentObj, metav1.CreateOptions{}); err != nil && !k8serrors.IsAlreadyExists(err) {
-			return ctrl.Result{}, fmt.Errorf("creating Deployment: %w", err)
-		}
-
-		log.Info("new Puzzle '" + puzzleName + "' created")
+		log.Info("new Answer for Puzzle '" + req.String() + "' created")
 
 		return ctrl.Result{}, nil
 	}
 
-	log.Info("updating Deployment associated with Puzzle named '" + puzzleName + "'")
+	log.Info("updating Answer associated with Puzzle named '" + req.String() + "'")
 
-	// The Deployment has been found, so let's see if we need to update it.
-	if int(*deployment.Spec.Replicas) != int(puzzle.Spec.Day) {
-		// 🚧🚧🚧 special fuzzy temporary math going on here
-		deployment.Spec.Replicas = int32Ptr(int32(puzzle.Spec.Day / replicaDivisor))
+	// The Answer has been found, so let's see if we need to update it.
+	if answer.Spec.Answers.PartOne == "" || answer.Spec.Answers.PartTwo == "" {
+		log.Error(nil, "TODO: Answer associated with Puzzle '"+req.String()+"' probably needs to be updated")
 
-		if *deployment.Spec.Replicas <= 0 {
-			*deployment.Spec.Replicas = 1
-		}
-		// 🚧🚧🚧 special fuzzy temporary math going on here
+		// TODO: (re)calculate some solutions
 
-		if _, err := deploymentsClient.Update(ctx, deployment, metav1.UpdateOptions{}); err != nil {
-			return ctrl.Result{}, fmt.Errorf("updating Deployment: %w", err)
-		}
-
-		log.Info("Puzzle '" + puzzleName + "' updated")
-
+		log.Info("Answer associated with Puzzle '" + req.String() + "' updated")
 		return ctrl.Result{}, nil
 	}
 
-	log.Info("Puzzle '" + puzzleName + "' is up-to-date")
+	log.Info("Answer associated with Puzzle '" + req.String() + "' is up-to-date")
 
 	return ctrl.Result{}, nil
 }
