@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -64,15 +63,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Set of Kubernetes clients for groups.
-	setupLog.Info("creating clientset for config")
-
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		setupLog.Error(err, "creating clientset for config")
-		os.Exit(1)
-	}
-
 	setupLog.Info("creating manager")
 
 	mgr, err := ctrl.NewManager(config, ctrl.Options{
@@ -88,9 +78,8 @@ func main() {
 	err = ctrl.NewControllerManagedBy(mgr).
 		For(&aokv1alpha1.Puzzle{}).
 		Complete(&reconciler{
-			Client:     mgr.GetClient(),
-			scheme:     mgr.GetScheme(),
-			kubeClient: clientset,
+			Client: mgr.GetClient(),
+			scheme: mgr.GetScheme(),
 		})
 	if err != nil {
 		setupLog.Error(err, "creating controller")
