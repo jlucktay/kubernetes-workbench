@@ -18,37 +18,49 @@ import (
 func main() {
 	var (
 		setupLog = ctrl.Log.WithName("setup")
-
-		scheme = runtime.NewScheme()
-		err    error
+		scheme   = runtime.NewScheme()
 	)
 
 	ctrl.SetLogger(zap.New())
 
 	setupLog.Info("adding to scheme")
 
-	err = aokv1alpha1.AddToScheme(scheme)
-	if err != nil {
+	if err := aokv1alpha1.AddToScheme(scheme); err != nil {
 		setupLog.Error(err, "adding to scheme")
 		os.Exit(1)
 	}
 
-	setupLog.Info("looking up home directory")
+	setupLog.Info("looking for kubeconfig")
 
-	userHome, err := os.UserHomeDir()
-	if err != nil {
-		setupLog.Error(err, "looking up home directory")
-		os.Exit(1)
+	var kubeconfigFilePath string
+
+	// If the KUBECONFIG env var has been set, look for the file there, otherwise check the default location in the user's home directory.
+	if customKubeconfig, found := os.LookupEnv("KUBECONFIG"); found {
+		kubeconfigFilePath = customKubeconfig
+
+		setupLog.Info("will look for kubeconfig in custom location set by KUBECONFIG env var", "KUBECONFIG", kubeconfigFilePath)
+	} else {
+		setupLog.Info("KUBECONFIG is not set; looking up user's home directory")
+
+		userHome, err := os.UserHomeDir()
+		if err != nil {
+			setupLog.Error(err, "looking up user's home directory")
+			os.Exit(1)
+		}
+
+		kubeconfigFilePath = filepath.Join(userHome, ".kube", "config")
+
+		setupLog.Info("will look for kubeconfig in default location under user's home directory", "KUBECONFIG", kubeconfigFilePath)
 	}
 
-	var config *rest.Config
+	var (
+		config *rest.Config
+		err    error
+	)
 
-	setupLog.Info("looking for config")
-
-	kubeconfigFilePath := filepath.Join(userHome, ".kube", "config")
 	if _, err = os.Stat(kubeconfigFilePath); errors.Is(err, os.ErrNotExist) {
 		// The kubeconfig file does not exist, so we are (probably) inside a cluster.
-		setupLog.Info("looking for in-cluster config")
+		setupLog.Info("looking for in-cluster kubeconfig")
 
 		config, err = rest.InClusterConfig()
 	} else {
@@ -75,13 +87,12 @@ func main() {
 
 	setupLog.Info("creating controller")
 
-	err = ctrl.NewControllerManagedBy(mgr).
+	if err := ctrl.NewControllerManagedBy(mgr).
 		For(&aokv1alpha1.Puzzle{}).
 		Complete(&reconciler{
 			Client: mgr.GetClient(),
 			scheme: mgr.GetScheme(),
-		})
-	if err != nil {
+		}); err != nil {
 		setupLog.Error(err, "creating controller")
 		os.Exit(1)
 	}
