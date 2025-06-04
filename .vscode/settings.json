@@ -1,0 +1,5 @@
+{
+  "gopls": {
+    "formatting.local": "go.jlucktay.dev/kubernetes-workbench"
+  }
+}
