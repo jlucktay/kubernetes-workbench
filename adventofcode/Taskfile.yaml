@@ -1,5 +1,9 @@
 version: 3
 
+vars:
+  CHAINSAW_CONTEXT: k3d-aok
+  CHAINSAW_VERSION: v0.2.12
+
 tasks:
   default: task --list-all
 
@@ -8,3 +12,25 @@ tasks:
     interactive: true
     dir: '{{.TASKFILE_DIR}}'
     cmd: ../crd-x/update-schema.sh
+
+  test:
+    desc: Test the operator's functionality with Kyverno Chainsaw.
+    preconditions:
+      - sh: >-
+          currCtx=$(kubectl config view --template='{{`{{index . "current-context"}}`}}')
+          && [[ $currCtx == "{{.CHAINSAW_CONTEXT}}" ]]
+        msg: The current context selected by kubectl does not match '{{.CHAINSAW_CONTEXT}}'.
+    requires:
+      vars:
+        - CHAINSAW_VERSION
+    dir: '{{.TASKFILE_DIR}}/test'
+    cmd: >-
+      docker run
+      --env=KUBECONFIG=/etc/kubeconfig/config
+      --network=host
+      --rm
+      --volume=${HOME}/.kube/:/etc/kubeconfig/
+      --volume=${PWD}/:/chainsaw/
+      ghcr.io/kyverno/chainsaw:{{.CHAINSAW_VERSION}}
+      test /chainsaw
+      --config /chainsaw/chainsaw-config.yaml

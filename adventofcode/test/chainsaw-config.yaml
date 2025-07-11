@@ -1,0 +1,23 @@
+---
+# yaml-language-server: $schema=https://github.com/kyverno/chainsaw/raw/refs/heads/main/pkg/data/schemas/json/configuration-chainsaw-v1alpha2.json
+apiVersion: chainsaw.kyverno.io/v1alpha2
+kind: Configuration
+
+metadata:
+  name: adventofcode
+
+spec:
+  execution:
+    repeatCount: 3
+
+  namespace:
+    template:
+      metadata:
+        annotations:
+          adventofcode.jlucktay.dev/test: chainsaw
+
+  cleanup:
+    delayBeforeCleanup: 5s
+
+  deletion:
+    propagation: Foreground

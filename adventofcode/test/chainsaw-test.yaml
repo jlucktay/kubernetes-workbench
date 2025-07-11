@@ -1,0 +1,19 @@
+---
+# yaml-language-server: $schema=https://github.com/kyverno/chainsaw/raw/refs/heads/main/pkg/data/schemas/json/test-chainsaw-v1alpha1.json
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+
+metadata:
+  name: adventofcode
+
+spec:
+  steps:
+    - try:
+        # first operation: create the config map
+        - apply:
+            # file is relative to the test folder
+            file: configmap.yaml
+        # second operation: verify the config map exists and contains the expected data
+        - assert:
+            # file is relative to the test folder
+            file: configmap.yaml
