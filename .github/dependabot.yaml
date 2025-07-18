@@ -1,0 +1,57 @@
+version: 2
+
+updates:
+  # Check for updates to GitHub Actions every week.
+  - package-ecosystem: github-actions
+
+    # Workflow files stored in the default location: .github/workflows
+    directory: /
+
+    schedule:
+      day: sunday
+      interval: weekly
+      time: 03:00
+      timezone: Etc/UTC
+
+    # Group all of the GHA updates together.
+    groups:
+      'GitHub Actions':
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch
+
+    commit-message:
+      prefix: Actions
+      include: scope
+
+    open-pull-requests-limit: 1
+
+  # Check for updates to direct Go dependencies every week.
+  - package-ecosystem: gomod
+    directories:
+      - '**/*'
+    schedule:
+      day: sunday
+      interval: weekly
+      time: 04:00
+      timezone: Etc/UTC
+
+    allow:
+      - dependency-type: direct
+
+    # Bundle all non-major dependency bumps together into the same PR.
+    groups:
+      Go:
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch
+
+    commit-message:
+      prefix: Go
+      include: scope
+
+    open-pull-requests-limit: 1
