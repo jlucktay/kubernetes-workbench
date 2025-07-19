@@ -5,24 +5,23 @@ vars:
   CHAINSAW_VERSION: v0.2.12
 
 tasks:
-  default: task --list-all
-
-  schema:update:
-    desc: Update the JSON Schema files for Kinds in the adventofcode.jlucktay.dev Group, by passing the CRDs through an ephemeral cluster.
-    interactive: true
-    dir: '{{.TASKFILE_DIR}}'
-    cmd: ../crd-x/update-schema.sh
+  default:
+    # https://clig.dev/#help
+    desc: Display a concise help text by default.
+    silent: true
+    cmd: task --list-all
 
   test:
     desc: Test the operator's functionality with Kyverno Chainsaw.
+    requires:
+      vars:
+        - CHAINSAW_CONTEXT
+        - CHAINSAW_VERSION
     preconditions:
       - sh: >-
           currCtx=$(kubectl config view --template='{{`{{index . "current-context"}}`}}')
           && [[ $currCtx == "{{.CHAINSAW_CONTEXT}}" ]]
         msg: The current context selected by kubectl does not match '{{.CHAINSAW_CONTEXT}}'.
-    requires:
-      vars:
-        - CHAINSAW_VERSION
     dir: '{{.TASKFILE_DIR}}/test'
     cmd: >-
       docker run

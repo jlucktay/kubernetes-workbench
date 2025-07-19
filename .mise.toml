@@ -1,0 +1,5 @@
+[tools]
+"aqua:jqlang/jq" = "1"
+"aqua:k3d-io/k3d" = "5.8.3"
+"aqua:kubernetes/kubectl" = "1.31"
+"aqua:mikefarah/yq" = "4"

@@ -1,0 +1,156 @@
+version: 3
+
+run: once
+
+vars:
+  GIT_ROOT:
+    sh: git -C "{{.TASKFILE_DIR}}" rev-parse --show-toplevel
+
+  # Note that cluster name is also set in the k3d config file.
+  K3D_CLUSTER_NAME: '{{default "aok" (env "K3D_CLUSTER_NAME")}}'
+
+  CRD_X_IMAGE: ghcr.io/jlucktay/crd-x
+  KUBECONFIG: '{{.GIT_ROOT}}/scripts/tmp/kubeconfig'
+  SCHEMAS: '{{.GIT_ROOT}}/adventofcode/schema'
+
+env:
+  GIT_ROOT: '{{.GIT_ROOT}}'
+  K3D_CLUSTER_NAME: '{{.K3D_CLUSTER_NAME}}'
+
+tasks:
+  default:
+    # https://clig.dev/#help
+    desc: Display a concise help text by default.
+    silent: true
+    cmd: task --list-all
+
+  cluster-create:
+    desc: Create a local k3s cluster with k3d, and import some images into it.
+    requires:
+      vars:
+        - GIT_ROOT
+        - K3D_CLUSTER_NAME
+    preconditions:
+      - sh: command -v docker
+        msg: The 'docker' command is not installed or available on your PATH.
+      - sh: command -v jq
+        msg: The 'jq' command is not installed or available on your PATH.
+      - sh: command -v k3d
+        msg: The 'k3d' command is not installed or available on your PATH.
+    status:
+      - k3d cluster list --output=json | jq --exit-status '.[] | select(.name == "{{.K3D_CLUSTER_NAME}}")'
+    cmd: '{{.GIT_ROOT}}/scripts/task.cluster-create.sh'
+
+  cluster-await:
+    desc: Wait for the local cluster to be ready.
+    requires:
+      vars:
+        - GIT_ROOT
+    deps:
+      - task: cluster-create
+    preconditions:
+      - sh: command -v kubectl
+        msg: The 'kubectl' command is not installed or available on your PATH.
+    cmd: '{{.GIT_ROOT}}/scripts/task.cluster-await.sh'
+
+  apply-crds:
+    desc: Apply the CRDs to the cluster.
+    requires:
+      vars:
+        - GIT_ROOT
+        - K3D_CLUSTER_NAME
+    deps:
+      - task: cluster-await
+    preconditions:
+      - sh: command -v kubectl
+        msg: The 'kubectl' command is not installed or available on your PATH.
+    status:
+      - kubectl --context="k3d-{{.K3D_CLUSTER_NAME}}" diff --filename="{{.GIT_ROOT}}/adventofcode/config/crd/*.yaml"
+    cmd: kubectl --context="k3d-{{.K3D_CLUSTER_NAME}}" apply --filename="{{.GIT_ROOT}}/adventofcode/config/crd/*.yaml"
+
+  crd-x-build:
+    desc: Build the worker image.
+    requires:
+      vars:
+        - CRD_X_IMAGE
+        - GIT_ROOT
+    preconditions:
+      - sh: command -v docker
+        msg: The 'docker' command is not installed or available on your PATH.
+    method: checksum
+    sources:
+      - '{{.GIT_ROOT}}/crd-x/**/*'
+    dir: '{{.GIT_ROOT}}/crd-x'
+    cmd: docker build --tag "{{.CRD_X_IMAGE}}" .
+
+  crd-x-kubeconfig:
+    desc: Set up and transform a kubeconfig file with the K3D server address.
+    requires:
+      vars:
+        - GIT_ROOT
+        - K3D_CLUSTER_NAME
+    vars:
+      # This will be a container-to-container connection on the same network, using the 'docker run --network=...' flag.
+      # The worker container can use the name of the control plane server container, and will be able to resolve its IP address.
+      # The port is not the randomised port that Docker externalises, but that of the control plane itself inside the server container.
+      # Thank you: https://rancher-users.slack.com/archives/CHM1EB3A7/p1745957501473809
+      K3D_SERVER: https://k3d-{{.K3D_CLUSTER_NAME}}-server-0:6443
+    deps:
+      - task: cluster-create
+    preconditions:
+      - sh: command -v kubectl
+        msg: The 'kubectl' command is not installed or available on your PATH.
+      - sh: command -v yq
+        msg: The 'yq' command is not installed or available on your PATH.
+    cmds:
+      - mkdir -p "{{osDir .KUBECONFIG}}"
+      - kubectl --context="k3d-{{.K3D_CLUSTER_NAME}}" config view --minify --raw | yq ".clusters[].cluster.server = \"{{.K3D_SERVER}}\"" > "{{.KUBECONFIG}}"
+
+  schema-update:
+    desc: Update the JSON Schema files for Kinds in the adventofcode.jlucktay.dev Group, by passing the CRDs through the local cluster.
+    requires:
+      vars:
+        - CRD_X_IMAGE
+        - K3D_CLUSTER_NAME
+        - KUBECONFIG
+        - SCHEMAS
+    deps:
+      - task: apply-crds
+      - task: crd-x-build
+      - task: crd-x-kubeconfig
+    preconditions:
+      - sh: command -v docker
+        msg: The 'docker' command is not installed or available on your PATH.
+    cmds:
+      - mkdir -p "{{.SCHEMAS}}"
+      - docker run --network="k3d-{{.K3D_CLUSTER_NAME}}" --rm --volume="{{.KUBECONFIG}}:/root/.kube/config:ro" --volume="{{.SCHEMAS}}:/schema/:rw" "{{.CRD_X_IMAGE}}"
+
+  down:
+    desc: Tear down the local k3s cluster, and tidy up the temporary kubeconfig.
+    deps:
+      - task: down-cluster
+      - task: down-kubeconfig
+
+  down-cluster:
+    desc: Tear down the local k3s cluster.
+    requires:
+      vars:
+        - GIT_ROOT
+        - K3D_CLUSTER_NAME
+    preconditions:
+      - sh: command -v k3d
+        msg: The 'k3d' command is not installed or available on your PATH.
+    status:
+      # Roll up the names of all k3d clusters and exit with zero if none of the cluster names match ours.
+      - >-
+        ! k3d cluster list --output=json | jq --exit-status '[.[] | isempty(select(.name == "{{.K3D_CLUSTER_NAME}}")) | not ] | any'
+    cmd: k3d cluster delete --config="{{.GIT_ROOT}}/k3d-config.yaml"
+
+  down-kubeconfig:
+    desc: Tidy up the temporary kubeconfig.
+    requires:
+      vars:
+        - KUBECONFIG
+    status:
+      - '! test -f {{.KUBECONFIG}}'
+    cmd: rm -f "{{.KUBECONFIG}}"

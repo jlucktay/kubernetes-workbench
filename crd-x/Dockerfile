@@ -1,10 +1,10 @@
-FROM debian:12-slim@sha256:4b50eb66f977b4062683ff434ef18ac191da862dbe966961bc11990cf5791a8d
+FROM debian:12-slim
 
 # https://docs.github.com/en/packages/learn-github-packages/connecting-a-repository-to-a-package#connecting-a-repository-to-a-container-image-using-the-command-line
 LABEL org.opencontainers.image.source=https://github.com/jlucktay/kubernetes-workbench
 
 ARG KUBECTL_VERSION="1.31"
-ARG KUBECTL_VERSION_LONG="1.31.8-1.1"
+ARG KUBECTL_VERSION_LONG="1.31.11-1.1"
 
 VOLUME [ "/schema" ]
 
