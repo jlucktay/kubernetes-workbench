@@ -3,8 +3,8 @@ module go.jlucktay.dev/kubernetes-workbench/adventofcode
 go 1.24.2
 
 require (
-	k8s.io/apimachinery v0.31.7
-	k8s.io/client-go v0.31.7
+	k8s.io/apimachinery v0.31.11
+	k8s.io/client-go v0.31.11
 	sigs.k8s.io/controller-runtime v0.19.7
 )
 
@@ -40,7 +40,6 @@ require (
 	github.com/prometheus/common v0.55.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/stretchr/testify v1.10.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
@@ -56,7 +55,7 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/api v0.31.7 // indirect
+	k8s.io/api v0.31.11 // indirect
 	k8s.io/apiextensions-apiserver v0.31.7 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20240228011516-70dd3763d340 // indirect
