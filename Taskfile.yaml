@@ -8,10 +8,13 @@ vars:
 
   # Note that cluster name is also set in the k3d config file.
   K3D_CLUSTER_NAME: '{{default "aok" (env "K3D_CLUSTER_NAME")}}'
+  KUBECTL_CONTEXT: k3d-{{.K3D_CLUSTER_NAME}}
 
   CRD_X_IMAGE: ghcr.io/jlucktay/crd-x
   KUBECONFIG: '{{.GIT_ROOT}}/scripts/tmp/kubeconfig'
   SCHEMAS: '{{.GIT_ROOT}}/adventofcode/schema'
+
+  CHAINSAW_VERSION: v0.2.12
 
 env:
   GIT_ROOT: '{{.GIT_ROOT}}'
@@ -65,8 +68,8 @@ tasks:
       - sh: command -v kubectl
         msg: The 'kubectl' command is not installed or available on your PATH.
     status:
-      - kubectl --context="k3d-{{.K3D_CLUSTER_NAME}}" diff --filename="{{.GIT_ROOT}}/adventofcode/config/crd/*.yaml"
-    cmd: kubectl --context="k3d-{{.K3D_CLUSTER_NAME}}" apply --filename="{{.GIT_ROOT}}/adventofcode/config/crd/*.yaml"
+      - kubectl --context="{{.KUBECTL_CONTEXT}}" diff --filename="{{.GIT_ROOT}}/adventofcode/config/crd/*.yaml"
+    cmd: kubectl --context="{{.KUBECTL_CONTEXT}}" apply --filename="{{.GIT_ROOT}}/adventofcode/config/crd/*.yaml"
 
   crd-x-build:
     desc: Build the worker image.
@@ -94,7 +97,7 @@ tasks:
       # The worker container can use the name of the control plane server container, and will be able to resolve its IP address.
       # The port is not the randomised port that Docker externalises, but that of the control plane itself inside the server container.
       # Thank you: https://rancher-users.slack.com/archives/CHM1EB3A7/p1745957501473809
-      K3D_SERVER: https://k3d-{{.K3D_CLUSTER_NAME}}-server-0:6443
+      K3D_SERVER: https://{{.KUBECTL_CONTEXT}}-server-0:6443
     deps:
       - task: cluster-create
     preconditions:
@@ -104,7 +107,9 @@ tasks:
         msg: The 'yq' command is not installed or available on your PATH.
     cmds:
       - mkdir -p "{{osDir .KUBECONFIG}}"
-      - kubectl --context="k3d-{{.K3D_CLUSTER_NAME}}" config view --minify --raw | yq ".clusters[].cluster.server = \"{{.K3D_SERVER}}\"" > "{{.KUBECONFIG}}"
+      - >-
+        kubectl --context="{{.KUBECTL_CONTEXT}}" config view --minify --raw
+        | yq ".clusters[].cluster.server = \"{{.K3D_SERVER}}\"" > "{{.KUBECONFIG}}"
 
   schema-update:
     desc: Update the JSON Schema files for Kinds in the adventofcode.jlucktay.dev Group, by passing the CRDs through the local cluster.
@@ -123,7 +128,38 @@ tasks:
         msg: The 'docker' command is not installed or available on your PATH.
     cmds:
       - mkdir -p "{{.SCHEMAS}}"
-      - docker run --network="k3d-{{.K3D_CLUSTER_NAME}}" --rm --volume="{{.KUBECONFIG}}:/root/.kube/config:ro" --volume="{{.SCHEMAS}}:/schema/:rw" "{{.CRD_X_IMAGE}}"
+      - >-
+        docker run
+        --network="{{.KUBECTL_CONTEXT}}"
+        --rm
+        --volume="{{.KUBECONFIG}}:/root/.kube/config:ro"
+        --volume="{{.SCHEMAS}}:/schema/:rw"
+        "{{.CRD_X_IMAGE}}"
+
+  test:
+    desc: Test the operator's functionality with Kyverno Chainsaw.
+    requires:
+      vars:
+        - CHAINSAW_VERSION
+        - KUBECONFIG
+        - KUBECTL_CONTEXT
+    deps:
+      - task: apply-crds
+      - task: crd-x-kubeconfig
+    preconditions:
+      - sh: command -v docker
+        msg: The 'docker' command is not installed or available on your PATH.
+    dir: '{{.GIT_ROOT}}/adventofcode/test'
+    cmd: >-
+      docker run
+      --env=KUBECONFIG=/etc/kubeconfig/config
+      --network="{{.KUBECTL_CONTEXT}}"
+      --rm
+      --volume={{.KUBECONFIG}}:/etc/kubeconfig/config
+      --volume=${PWD}/:/chainsaw/
+      ghcr.io/kyverno/chainsaw:{{.CHAINSAW_VERSION}}
+      test /chainsaw
+      --config /chainsaw/chainsaw-config.yaml
 
   down:
     desc: Tear down the local k3s cluster, and tidy up the temporary kubeconfig.
@@ -143,7 +179,8 @@ tasks:
     status:
       # Roll up the names of all k3d clusters and exit with zero if none of the cluster names match ours.
       - >-
-        ! k3d cluster list --output=json | jq --exit-status '[.[] | isempty(select(.name == "{{.K3D_CLUSTER_NAME}}")) | not ] | any'
+        ! k3d cluster list --output=json
+        | jq --exit-status '[.[] | isempty(select(.name == "{{.K3D_CLUSTER_NAME}}")) | not ] | any'
     cmd: k3d cluster delete --config="{{.GIT_ROOT}}/k3d-config.yaml"
 
   down-kubeconfig:
