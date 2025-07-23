@@ -1,0 +1,10 @@
+---
+resources:
+  - mysql-deployment.yaml
+  - wordpress-deployment.yaml
+
+secretGenerator:
+  - name: mysql-pass
+    literals:
+      # Yep, this is _really_ secure!
+      - password=Troopers-ostrich-lilith-exposed-holed-ernest-clayton-mildred-charmed-dislikes-cortex-banking-protect-biting-maroon
