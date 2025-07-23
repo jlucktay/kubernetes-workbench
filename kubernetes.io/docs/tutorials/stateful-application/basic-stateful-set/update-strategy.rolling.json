@@ -1,0 +1,10 @@
+{
+  "spec": {
+    "updateStrategy": {
+      "type": "RollingUpdate",
+      "rollingUpdate": {
+        "partition": 3
+      }
+    }
+  }
+}

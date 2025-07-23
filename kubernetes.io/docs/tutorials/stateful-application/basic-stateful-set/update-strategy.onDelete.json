@@ -1,0 +1,8 @@
+{
+  "spec": {
+    "updateStrategy": {
+      "type": "OnDelete",
+      "rollingUpdate": null
+    }
+  }
+}
