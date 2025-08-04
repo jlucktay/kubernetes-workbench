@@ -24,5 +24,8 @@ RUN --mount=type=cache,target=${GOCACHE} \
 
 FROM gcr.io/distroless/static-debian12:nonroot
 
+# https://docs.github.com/en/packages/learn-github-packages/connecting-a-repository-to-a-package#connecting-a-repository-to-a-container-image-using-the-command-line
+LABEL org.opencontainers.image.source=https://github.com/jlucktay/kubernetes-workbench
+
 COPY --from=build /controller/controller /
 CMD ["/controller"]
