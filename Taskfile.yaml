@@ -10,7 +10,11 @@ vars:
   K3D_CLUSTER_NAME: '{{default "aok" (env "K3D_CLUSTER_NAME")}}'
   KUBECTL_CONTEXT: k3d-{{.K3D_CLUSTER_NAME}}
 
-  CRD_X_IMAGE: ghcr.io/jlucktay/crd-x
+  REGISTRY_BASE: ghcr.io/jlucktay
+  CONTROLLER_IMAGE: '{{.REGISTRY_BASE}}/aok-controller'
+  CONTROLLER_IMAGE_ID_PATH: '{{.GIT_ROOT}}/out/controller-image-id'
+  CRD_X_IMAGE: '{{.REGISTRY_BASE}}/crd-x'
+
   KUBECONFIG: '{{.GIT_ROOT}}/scripts/tmp/kubeconfig'
   SCHEMAS: '{{.GIT_ROOT}}/adventofcode/schema'
 
@@ -70,6 +74,91 @@ tasks:
     status:
       - kubectl --context="{{.KUBECTL_CONTEXT}}" diff --filename="{{.GIT_ROOT}}/adventofcode/config/crd/*.yaml"
     cmd: kubectl --context="{{.KUBECTL_CONTEXT}}" apply --filename="{{.GIT_ROOT}}/adventofcode/config/crd/*.yaml"
+
+  controller-build:
+    desc: Build the controller image.
+    requires:
+      vars:
+        - CONTROLLER_IMAGE
+        - CONTROLLER_IMAGE_ID_PATH
+        - GIT_ROOT
+    preconditions:
+      - sh: command -v docker
+        msg: The 'docker' command is not installed or available on your PATH.
+    vars:
+      CONTROLLER_IMAGE_ID: '{{.CONTROLLER_IMAGE}}:{{uuid}}'
+    method: checksum
+    sources:
+      - '{{.GIT_ROOT}}/adventofcode/**/*'
+      - exclude: '{{.GIT_ROOT}}/adventofcode/config/cluster/**/*.yaml'
+    generates:
+      - '{{.CONTROLLER_IMAGE_ID_PATH}}'
+    dir: '{{.GIT_ROOT}}/adventofcode'
+    cmds:
+      - mkdir -p "{{osDir .CONTROLLER_IMAGE_ID_PATH}}"
+      - docker build --tag "{{.CONTROLLER_IMAGE_ID}}" .
+      - echo "{{.CONTROLLER_IMAGE_ID}}" > "{{.CONTROLLER_IMAGE_ID_PATH}}"
+
+  controller-load:
+    desc: Load the controller image into the local cluster.
+    requires:
+      vars:
+        - CONTROLLER_IMAGE_ID_PATH
+        - K3D_CLUSTER_NAME
+        - KUBECTL_CONTEXT
+    deps:
+      - task: cluster-await
+      - task: controller-build
+    status:
+      - >-
+        docker exec "{{.KUBECTL_CONTEXT}}-server-0" crictl images --output=json
+        | jq --arg CID "$(< "{{.CONTROLLER_IMAGE_ID_PATH}}")" --exit-status '[.images[].repoTags[]] | any(. == $CID)'
+    cmd: k3d image import "$(< "{{.CONTROLLER_IMAGE_ID_PATH}}")" --cluster="{{.K3D_CLUSTER_NAME}}" --mode=auto
+
+  controller-install:
+    desc: Install the controller into the local cluster.
+    requires:
+      vars:
+        - CONTROLLER_IMAGE_ID_PATH
+        - GIT_ROOT
+    deps:
+      - task: controller-load
+    cmds:
+      - >-
+        CID="$(< "{{.CONTROLLER_IMAGE_ID_PATH}}")"
+        yq eval --inplace
+        '(.spec.template.spec.containers[] | select(.name == "aok-controller") | .image) = strenv(CID)'
+        "{{.GIT_ROOT}}/adventofcode/config/cluster/2-deployment/deployment.yaml"
+      - for:
+          - config/crd
+          - config/cluster/0-namespace
+          - config/cluster/1-rbac
+          - config/cluster/2-deployment
+        task: controller-install-internal
+        vars:
+          SPEC_DIR: '{{.ITEM}}'
+
+  controller-install-internal:
+    desc: Install the spec(s) in the given directory into the local cluster.
+    internal: true
+    run: when_changed
+    requires:
+      vars:
+        - GIT_ROOT
+        - KUBECTL_CONTEXT
+        - SPEC_DIR
+    status:
+      - kubectl --context="{{.KUBECTL_CONTEXT}}" diff --filename="{{.GIT_ROOT}}/adventofcode/{{.SPEC_DIR}}/*.yaml"
+    cmd: kubectl --context="{{.KUBECTL_CONTEXT}}" apply --filename="{{.GIT_ROOT}}/adventofcode/{{.SPEC_DIR}}/*.yaml"
+
+  controller-bounce:
+    desc: Restart the controller deployment in the local cluster.
+    requires:
+      vars:
+        - KUBECTL_CONTEXT
+    deps:
+      - task: controller-install
+    cmd: kubectl --context="{{.KUBECTL_CONTEXT}}" --namespace=aok-controller rollout restart deployment aok-controller
 
   crd-x-build:
     desc: Build the worker image.
@@ -162,9 +251,10 @@ tasks:
       --config /chainsaw/chainsaw-config.yaml
 
   down:
-    desc: Tear down the local k3s cluster, and tidy up the temporary kubeconfig.
+    desc: Tear down the local k3s cluster, remove any built images, and tidy up the temporary kubeconfig.
     deps:
       - task: down-cluster
+      - task: down-docker
       - task: down-kubeconfig
 
   down-cluster:
@@ -182,6 +272,19 @@ tasks:
         ! k3d cluster list --output=json
         | jq --exit-status '[.[] | isempty(select(.name == "{{.K3D_CLUSTER_NAME}}")) | not ] | any'
     cmd: k3d cluster delete --config="{{.GIT_ROOT}}/k3d-config.yaml"
+
+  down-docker:
+    desc: Remove any local built Docker images.
+    requires:
+      vars:
+        - CONTROLLER_IMAGE
+        - CONTROLLER_IMAGE_ID_PATH
+    cmds:
+      - >-
+        docker images --filter=reference="{{.CONTROLLER_IMAGE}}" --no-trunc --quiet
+        | sort --ignore-case --unique
+        | xargs --max-args=1 docker rmi --force
+      - rm -f "{{.CONTROLLER_IMAGE_ID_PATH}}"
 
   down-kubeconfig:
     desc: Tidy up the temporary kubeconfig.
