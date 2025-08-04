@@ -6,4 +6,20 @@ metadata:
   name: aok-controller
   namespace: aok-controller
 
-rules: []
+rules:
+  - apiGroups:
+      - adventofcode.jlucktay.dev
+    resources:
+      - puzzles
+    verbs:
+      - list
+      - watch
+
+  - apiGroups:
+      - adventofcode.jlucktay.dev
+    resources:
+      - answers
+    verbs:
+      - create
+      - list
+      - watch
