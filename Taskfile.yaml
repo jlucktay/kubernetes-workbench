@@ -128,7 +128,7 @@ tasks:
     cmds:
       - >-
         CID="$(< "{{.CONTROLLER_IMAGE_ID_PATH}}")"
-        yq eval --inplace
+        yq eval --inplace --prettyPrint
         '(.spec.template.spec.containers[] | select(.name == "aok-controller") | .image) = strenv(CID)'
         "{{.GIT_ROOT}}/adventofcode/config/cluster/2-deployment/deployment.yaml"
       - for:
