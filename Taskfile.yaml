@@ -10,13 +10,15 @@ vars:
   K3D_CLUSTER_NAME: '{{default "aok" (env "K3D_CLUSTER_NAME")}}'
   KUBECTL_CONTEXT: k3d-{{.K3D_CLUSTER_NAME}}
 
-  REGISTRY_BASE: ghcr.io/jlucktay
-  CONTROLLER_IMAGE: '{{.REGISTRY_BASE}}/aok-controller'
-  CONTROLLER_IMAGE_ID_PATH: '{{.GIT_ROOT}}/out/controller-image-id'
-  CRD_X_IMAGE: '{{.REGISTRY_BASE}}/crd-x'
+  SCRIPT_TMP_DIR: '{{joinPath .GIT_ROOT "scripts/tmp"}}'
 
-  KUBECONFIG: '{{.GIT_ROOT}}/scripts/tmp/kubeconfig'
-  SCHEMAS: '{{.GIT_ROOT}}/adventofcode/schema'
+  REGISTRY_BASE: ghcr.io/jlucktay
+  CONTROLLER_IMAGE: '{{joinPath .REGISTRY_BASE "aok-controller"}}'
+  CONTROLLER_IMAGE_ID_PATH: '{{joinPath .SCRIPT_TMP_DIR "controller-image-id"}}'
+  CRD_X_IMAGE: '{{joinPath .REGISTRY_BASE "crd-x"}}'
+
+  KUBECONFIG: '{{joinPath .SCRIPT_TMP_DIR "kubeconfig"}}'
+  SCHEMAS: '{{joinPath .GIT_ROOT "adventofcode/schema"}}'
 
   CHAINSAW_VERSION: v0.2.12
 
