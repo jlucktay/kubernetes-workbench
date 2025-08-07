@@ -21,5 +21,6 @@ rules:
       - answers
     verbs:
       - create
+      - delete
       - list
       - watch

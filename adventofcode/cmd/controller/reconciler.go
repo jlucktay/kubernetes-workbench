@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -28,7 +27,7 @@ func (r *reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 	log.Info("getting Puzzle named '" + req.String() + "'")
 
 	if err := r.Get(ctx, req.NamespacedName, &puzzle); err != nil {
-		if !k8serrors.IsNotFound(err) {
+		if client.IgnoreNotFound(err) != nil {
 			return ctrl.Result{}, fmt.Errorf("getting Puzzle: %w", err)
 		}
 
@@ -48,14 +47,14 @@ func (r *reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 	var answer aokv1alpha1.Answer
 
 	if err := r.Get(ctx, req.NamespacedName, &answer); err != nil {
-		if !k8serrors.IsNotFound(err) {
+		if client.IgnoreNotFound(err) != nil {
 			return ctrl.Result{}, fmt.Errorf("getting Answer: %w", err)
 		}
 
 		answer = getAnswerObject(req.NamespacedName, puzzle.Spec.Year, puzzle.Spec.Day,
-			"part1 string", "part2 string") // TODO: calculate some solutions
+			"138", "") // TODO: calculate some solutions
 
-		if err := r.Create(ctx, &answer); err != nil && !k8serrors.IsAlreadyExists(err) {
+		if err := r.Create(ctx, &answer); client.IgnoreAlreadyExists(err) != nil {
 			return ctrl.Result{}, fmt.Errorf("creating Answer: %w", err)
 		}
 

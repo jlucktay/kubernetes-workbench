@@ -1,0 +1,14 @@
+---
+# yaml-language-server: $schema=../../../schema/adventofcode.jlucktay.dev_answer_v1alpha1.json
+apiVersion: adventofcode.jlucktay.dev/v1alpha1
+kind: Answer
+
+metadata:
+  name: 2015-01
+
+spec:
+  year: 2015
+  day: 1
+  answers:
+    partOne: '138'
+    partTwo: ''

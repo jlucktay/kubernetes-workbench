@@ -7,8 +7,14 @@ metadata:
   name: adventofcode
 
 spec:
+  timeouts:
+    assert: 3s
+    cleanup: 10s
+    error: 8s
+
   execution:
-    repeatCount: 3
+    failFast: true
+    repeatCount: 1
 
   namespace:
     template:
@@ -17,7 +23,8 @@ spec:
           adventofcode.jlucktay.dev/test: chainsaw
 
   cleanup:
-    delayBeforeCleanup: 5s
+    # When testing operators, it can be useful to wait a little bit before starting the cleanup process to make sure the operator/controller has the necessary time to update its internal state.
+    delayBeforeCleanup: 1s
 
   deletion:
     propagation: Foreground

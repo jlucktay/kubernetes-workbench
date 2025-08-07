@@ -9,11 +9,12 @@ metadata:
 spec:
   steps:
     - try:
-        # first operation: create the config map
+        # First operation: create the Puzzle
         - apply:
-            # file is relative to the test folder
-            file: configmap.yaml
-        # second operation: verify the config map exists and contains the expected data
+            # Relative to the test folder
+            file: 2015/1/puzzle.yaml
+
+        # Second operation: verify the corresponding Answer exists and contains the expected data
         - assert:
-            # file is relative to the test folder
-            file: configmap.yaml
+            # Relative to the test folder
+            file: 2015/1/answer.yaml

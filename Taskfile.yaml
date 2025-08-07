@@ -93,6 +93,7 @@ tasks:
     sources:
       - '{{.GIT_ROOT}}/adventofcode/**/*'
       - exclude: '{{.GIT_ROOT}}/adventofcode/config/cluster/**/*.yaml'
+      - exclude: '{{.GIT_ROOT}}/adventofcode/test/**/*'
     generates:
       - '{{.CONTROLLER_IMAGE_ID_PATH}}'
     dir: '{{.GIT_ROOT}}/adventofcode'
