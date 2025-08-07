@@ -6,7 +6,7 @@ kind: Simple
 metadata:
   name: aok
 
-image: rancher/k3s:v1.31.10-k3s1
+image: rancher/k3s:v1.32.7-k3s1
 options:
   k3d:
     # Same as the `--no-lb` flag.
