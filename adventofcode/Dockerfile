@@ -1,4 +1,4 @@
-FROM golang:1.24 AS build
+FROM golang:1.25 AS build
 
 ARG GOCACHE=/root/.cache/go-build
 ARG GOMODCACHE=/root/.cache/go-mod
@@ -22,7 +22,7 @@ RUN --mount=type=cache,target=${GOCACHE} \
   && go test -v ./... \
   && CGO_ENABLED=0 go build -o controller ./cmd/controller
 
-FROM gcr.io/distroless/static-debian12:nonroot
+FROM gcr.io/distroless/static-debian13:nonroot
 
 # https://docs.github.com/en/packages/learn-github-packages/connecting-a-repository-to-a-package#connecting-a-repository-to-a-container-image-using-the-command-line
 LABEL org.opencontainers.image.source=https://github.com/jlucktay/kubernetes-workbench

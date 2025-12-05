@@ -6,9 +6,11 @@ vars:
   GIT_ROOT:
     sh: git -C "{{.TASKFILE_DIR}}" rev-parse --show-toplevel
 
-  # Note that cluster name is also set in the k3d config file.
-  K3D_CLUSTER_NAME: '{{default "aok" (env "K3D_CLUSTER_NAME")}}'
-  KUBECTL_CONTEXT: k3d-{{.K3D_CLUSTER_NAME}}
+  KIND_CLUSTER_NAME: '{{default "aok" (env "KIND_CLUSTER_NAME")}}'
+  KIND_IMAGE_VERSION: v1.33.4
+  KIND_IMAGE: kindest/node:{{.KIND_IMAGE_VERSION}}
+
+  KUBECTL_CONTEXT: kind-{{.KIND_CLUSTER_NAME}}
 
   SCRIPT_TMP_DIR: '{{joinPath .GIT_ROOT "scripts/tmp"}}'
 
@@ -20,11 +22,12 @@ vars:
   KUBECONFIG: '{{joinPath .SCRIPT_TMP_DIR "kubeconfig"}}'
   SCHEMAS: '{{joinPath .GIT_ROOT "adventofcode/schema"}}'
 
-  CHAINSAW_VERSION: v0.2.12
+  CHAINSAW_VERSION: v0.2.13
 
 env:
   GIT_ROOT: '{{.GIT_ROOT}}'
-  K3D_CLUSTER_NAME: '{{.K3D_CLUSTER_NAME}}'
+  KIND_CLUSTER_NAME: '{{.KIND_CLUSTER_NAME}}'
+  KUBECTL_CONTEXT: '{{.KUBECTL_CONTEXT}}'
 
 tasks:
   default:
@@ -34,27 +37,27 @@ tasks:
     cmd: task --list-all
 
   cluster-create:
-    desc: Create a local k3s cluster with k3d, and import some images into it.
+    desc: Create a local cluster with kind.
     requires:
       vars:
-        - GIT_ROOT
-        - K3D_CLUSTER_NAME
+        - KIND_CLUSTER_NAME
+        - KIND_IMAGE
     preconditions:
-      - sh: command -v docker
-        msg: The 'docker' command is not installed or available on your PATH.
-      - sh: command -v jq
-        msg: The 'jq' command is not installed or available on your PATH.
-      - sh: command -v k3d
-        msg: The 'k3d' command is not installed or available on your PATH.
+      - sh: command -v kind
+        msg: The 'kind' command is not installed or available on your PATH.
+      - sh: command -v rg
+        msg: The 'rg' command is not installed or available on your PATH.
     status:
-      - k3d cluster list --output=json | jq --exit-status '.[] | select(.name == "{{.K3D_CLUSTER_NAME}}")'
-    cmd: '{{.GIT_ROOT}}/scripts/task.cluster-create.sh'
+      - kind get clusters | rg '^{{.KIND_CLUSTER_NAME}}$'
+    cmd: kind create cluster --image {{.KIND_IMAGE}} --name {{.KIND_CLUSTER_NAME}}
 
   cluster-await:
     desc: Wait for the local cluster to be ready.
     requires:
       vars:
         - GIT_ROOT
+        - # Used in the shell script
+          KUBECTL_CONTEXT
     deps:
       - task: cluster-create
     preconditions:
@@ -67,12 +70,9 @@ tasks:
     requires:
       vars:
         - GIT_ROOT
-        - K3D_CLUSTER_NAME
+        - KUBECTL_CONTEXT
     deps:
       - task: cluster-await
-    preconditions:
-      - sh: command -v kubectl
-        msg: The 'kubectl' command is not installed or available on your PATH.
     status:
       - kubectl --context="{{.KUBECTL_CONTEXT}}" diff --filename="{{.GIT_ROOT}}/adventofcode/config/crd/*.yaml"
     cmd: kubectl --context="{{.KUBECTL_CONTEXT}}" apply --filename="{{.GIT_ROOT}}/adventofcode/config/crd/*.yaml"
@@ -107,16 +107,11 @@ tasks:
     requires:
       vars:
         - CONTROLLER_IMAGE_ID_PATH
-        - K3D_CLUSTER_NAME
-        - KUBECTL_CONTEXT
+        - KIND_CLUSTER_NAME
     deps:
       - task: cluster-await
       - task: controller-build
-    status:
-      - >-
-        docker exec "{{.KUBECTL_CONTEXT}}-server-0" crictl images --output=json
-        | jq --arg CID "$(< "{{.CONTROLLER_IMAGE_ID_PATH}}")" --exit-status '[.images[].repoTags[]] | any(. == $CID)'
-    cmd: k3d image import "$(< "{{.CONTROLLER_IMAGE_ID_PATH}}")" --cluster="{{.K3D_CLUSTER_NAME}}" --mode=auto
+    cmd: kind load docker-image "$(< "{{.CONTROLLER_IMAGE_ID_PATH}}")" --name="{{.KIND_CLUSTER_NAME}}"
 
   controller-install:
     desc: Install the controller into the local cluster.
@@ -179,17 +174,17 @@ tasks:
     cmd: docker build --tag "{{.CRD_X_IMAGE}}" .
 
   crd-x-kubeconfig:
-    desc: Set up and transform a kubeconfig file with the K3D server address.
+    desc: Set up and transform a kubeconfig file with the server address of the local cluster.
     requires:
       vars:
         - GIT_ROOT
-        - K3D_CLUSTER_NAME
+        - KIND_CLUSTER_NAME
     vars:
       # This will be a container-to-container connection on the same network, using the 'docker run --network=...' flag.
       # The worker container can use the name of the control plane server container, and will be able to resolve its IP address.
       # The port is not the randomised port that Docker externalises, but that of the control plane itself inside the server container.
       # Thank you: https://rancher-users.slack.com/archives/CHM1EB3A7/p1745957501473809
-      K3D_SERVER: https://{{.KUBECTL_CONTEXT}}-server-0:6443
+      KIND_SERVER: https://{{.KIND_CLUSTER_NAME}}-control-plane:6443
     deps:
       - task: cluster-create
     preconditions:
@@ -201,28 +196,24 @@ tasks:
       - mkdir -p "{{osDir .KUBECONFIG}}"
       - >-
         kubectl --context="{{.KUBECTL_CONTEXT}}" config view --minify --raw
-        | yq ".clusters[].cluster.server = \"{{.K3D_SERVER}}\"" > "{{.KUBECONFIG}}"
+        | yq ".clusters[].cluster.server = \"{{.KIND_SERVER}}\"" > "{{.KUBECONFIG}}"
 
   schema-update:
     desc: Update the JSON Schema files for Kinds in the adventofcode.jlucktay.dev Group, by passing the CRDs through the local cluster.
     requires:
       vars:
         - CRD_X_IMAGE
-        - K3D_CLUSTER_NAME
         - KUBECONFIG
         - SCHEMAS
     deps:
       - task: apply-crds
       - task: crd-x-build
       - task: crd-x-kubeconfig
-    preconditions:
-      - sh: command -v docker
-        msg: The 'docker' command is not installed or available on your PATH.
     cmds:
       - mkdir -p "{{.SCHEMAS}}"
       - >-
         docker run
-        --network="{{.KUBECTL_CONTEXT}}"
+        --network="kind"
         --rm
         --volume="{{.KUBECONFIG}}:/root/.kube/config:ro"
         --volume="{{.SCHEMAS}}:/schema/:rw"
@@ -233,8 +224,8 @@ tasks:
     requires:
       vars:
         - CHAINSAW_VERSION
+        - GIT_ROOT
         - KUBECONFIG
-        - KUBECTL_CONTEXT
     deps:
       - task: apply-crds
       - task: crd-x-kubeconfig
@@ -245,7 +236,7 @@ tasks:
     cmd: >-
       docker run
       --env=KUBECONFIG=/etc/kubeconfig/config
-      --network="{{.KUBECTL_CONTEXT}}"
+      --network="kind"
       --rm
       --volume={{.KUBECONFIG}}:/etc/kubeconfig/config
       --volume=${PWD}/:/chainsaw/
@@ -254,27 +245,18 @@ tasks:
       --config /chainsaw/chainsaw-config.yaml
 
   down:
-    desc: Tear down the local k3s cluster, remove any built images, and tidy up the temporary kubeconfig.
+    desc: Tear down the local cluster, remove any built images, and tidy up the temporary kubeconfig.
     deps:
       - task: down-cluster
       - task: down-docker
       - task: down-kubeconfig
 
   down-cluster:
-    desc: Tear down the local k3s cluster.
+    desc: Tear down the local cluster.
     requires:
       vars:
-        - GIT_ROOT
-        - K3D_CLUSTER_NAME
-    preconditions:
-      - sh: command -v k3d
-        msg: The 'k3d' command is not installed or available on your PATH.
-    status:
-      # Roll up the names of all k3d clusters and exit with zero if none of the cluster names match ours.
-      - >-
-        ! k3d cluster list --output=json
-        | jq --exit-status '[.[] | isempty(select(.name == "{{.K3D_CLUSTER_NAME}}")) | not ] | any'
-    cmd: k3d cluster delete --config="{{.GIT_ROOT}}/k3d-config.yaml"
+        - KIND_CLUSTER_NAME
+    cmd: kind delete cluster --name {{.KIND_CLUSTER_NAME}}
 
   down-docker:
     desc: Remove any local built Docker images.
@@ -286,7 +268,7 @@ tasks:
       - >-
         docker images --filter=reference="{{.CONTROLLER_IMAGE}}" --no-trunc --quiet
         | sort --ignore-case --unique
-        | xargs --max-args=1 docker rmi --force
+        | xargs docker rmi --force
       - rm -f "{{.CONTROLLER_IMAGE_ID_PATH}}"
 
   down-kubeconfig:
@@ -294,6 +276,4 @@ tasks:
     requires:
       vars:
         - KUBECONFIG
-    status:
-      - '! test -f {{.KUBECONFIG}}'
     cmd: rm -f "{{.KUBECONFIG}}"

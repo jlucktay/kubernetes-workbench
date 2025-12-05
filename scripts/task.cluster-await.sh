@@ -1,18 +1,24 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-readonly context="k3d-${K3D_CLUSTER_NAME:?}"
+readonly context="${KUBECTL_CONTEXT:?}"
+
+# Key = name, value = namespace
+declare -A deployments=(
+  ['coredns']='kube-system'
+  ['local-path-provisioner']='local-path-storage'
+)
 
 # Wait for cluster OK, i.e. all Deployments are available.
-for deployment in coredns local-path-provisioner metrics-server traefik; do
-  printf "🚧 %22s " "$deployment"
+for dep_key in "${!deployments[@]}"; do
+  printf "🚧 %18s/%-22s " "${deployments[$dep_key]}" "$dep_key"
 
-  until kubectl --context="$context" get deployments "$deployment" --namespace=kube-system &> /dev/null; do
+  until kubectl --context="$context" get deployments "$dep_key" --namespace="${deployments[$dep_key]}" &> /dev/null; do
     echo -n .
     sleep 1
   done
 
-  until kubectl --context="$context" wait deployments "$deployment" --for=condition=Available --namespace=kube-system --timeout=0 &> /dev/null; do
+  until kubectl --context="$context" wait deployments "$dep_key" --for=condition=Available --namespace="${deployments[$dep_key]}" --timeout=0 &> /dev/null; do
     echo -n +
     sleep 1
   done
