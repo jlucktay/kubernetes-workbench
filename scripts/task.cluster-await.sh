@@ -9,7 +9,7 @@ declare -A deployments=(
   ['local-path-provisioner']='local-path-storage'
 )
 
-# Wait for cluster OK, i.e. all Deployments are available.
+# Wait for cluster OK, i.e. all of kind's system Deployments are available.
 for dep_key in "${!deployments[@]}"; do
   printf "🚧 %18s/%-22s " "${deployments[$dep_key]}" "$dep_key"
 
