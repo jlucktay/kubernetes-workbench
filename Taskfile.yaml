@@ -149,14 +149,29 @@ tasks:
       - kubectl --context="{{.KUBECTL_CONTEXT}}" diff --filename="{{.GIT_ROOT}}/adventofcode/{{.SPEC_DIR}}/*.yaml"
     cmd: kubectl --context="{{.KUBECTL_CONTEXT}}" apply --filename="{{.GIT_ROOT}}/adventofcode/{{.SPEC_DIR}}/*.yaml"
 
+  controller-await:
+    desc: Wait for the controller to be ready.
+    requires:
+      vars:
+        - GIT_ROOT
+        - KUBECTL_CONTEXT
+    deps:
+      - task: controller-install
+    cmds:
+      - kubectl --context="{{.KUBECTL_CONTEXT}}" get --filename="{{.GIT_ROOT}}/adventofcode/config/cluster/2-deployment/*.yaml"
+      - kubectl --context="{{.KUBECTL_CONTEXT}}" wait --filename="{{.GIT_ROOT}}/adventofcode/config/cluster/2-deployment/*.yaml" --for=condition=Available
+
   controller-bounce:
     desc: Restart the controller deployment in the local cluster.
     requires:
       vars:
+        - GIT_ROOT
         - KUBECTL_CONTEXT
     deps:
       - task: controller-install
-    cmd: kubectl --context="{{.KUBECTL_CONTEXT}}" --namespace=aok-controller rollout restart deployment aok-controller
+    cmds:
+      - kubectl --context="{{.KUBECTL_CONTEXT}}" rollout restart --filename="{{.GIT_ROOT}}/adventofcode/config/cluster/2-deployment/*.yaml"
+      - task: controller-await
 
   crd-x-build:
     desc: Build the worker image.
@@ -196,7 +211,7 @@ tasks:
       - mkdir -p "{{osDir .KUBECONFIG}}"
       - >-
         kubectl --context="{{.KUBECTL_CONTEXT}}" config view --minify --raw
-        | yq ".clusters[].cluster.server = \"{{.KIND_SERVER}}\"" > "{{.KUBECONFIG}}"
+        | yq '.clusters[].cluster.server = "{{.KIND_SERVER}}"' > "{{.KUBECONFIG}}"
 
   schema-update:
     desc: Update the JSON Schema files for Kinds in the adventofcode.jlucktay.dev Group, by passing the CRDs through the local cluster.
@@ -229,6 +244,7 @@ tasks:
     deps:
       - task: apply-crds
       - task: crd-x-kubeconfig
+      - task: controller-await
     preconditions:
       - sh: command -v docker
         msg: The 'docker' command is not installed or available on your PATH.
