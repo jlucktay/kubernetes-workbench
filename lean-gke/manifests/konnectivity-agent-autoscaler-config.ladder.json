@@ -1,0 +1,15 @@
+{
+  "coresToReplicas": [],
+  "nodesToReplicas": [
+    [1, 1],
+    [2, 2],
+    [3, 3],
+    [10, 3],
+    [100, 3],
+    [250, 4],
+    [500, 5],
+    [1000, 6],
+    [5000, 10]
+  ],
+  "includeUnschedulableNodes": false
+}

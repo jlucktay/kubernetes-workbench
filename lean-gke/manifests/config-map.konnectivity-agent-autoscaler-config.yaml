@@ -1,0 +1,32 @@
+---
+apiVersion: v1
+kind: ConfigMap
+
+metadata:
+  namespace: kube-system
+  name: konnectivity-agent-autoscaler-config
+  annotations:
+    components.gke.io/component-name: konnectivitynetworkproxy-combined
+    components.gke.io/component-version: 1.35.4
+    components.gke.io/layer: addon
+  labels:
+    addonmanager.kubernetes.io/mode: EnsureExists
+    kubernetes.io/cluster-service: 'true'
+
+data:
+  ladder: |-
+    {
+      "coresToReplicas": [],
+      "nodesToReplicas": [
+        [1, 1],
+        [2, 2],
+        [3, 3],
+        [10, 3],
+        [100, 3],
+        [250, 4],
+        [500, 5],
+        [1000, 6],
+        [5000, 10]
+      ],
+      "includeUnschedulableNodes": false
+    }

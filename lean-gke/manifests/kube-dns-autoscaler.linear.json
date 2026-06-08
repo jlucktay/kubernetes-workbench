@@ -1,0 +1,7 @@
+{
+  "coresPerReplica": 256,
+  "nodesPerReplica": 16,
+  "includeUnschedulableNodes": true,
+  "preventSinglePointFailure": true,
+  "min": 3
+}
