@@ -13,11 +13,39 @@ resource "google_container_cluster" "main" {
   name    = local.name_infix
   project = module.google_project_factory.project_id
 
+  ### Cluster-wide settings
   deletion_protection = false
 
   # Set to a single zone to have a (free tier) Standard zonal cluster.
   location = one(random_shuffle.zone.result)
 
+  # Weekly upgrade cadence.
+  release_channel {
+    channel = "RAPID"
+  }
+
+  gke_auto_upgrade_config {
+    patch_mode = "ACCELERATED"
+  }
+
+  ### Networking
+  network    = module.google_network.network_id
+  subnetwork = one(module.google_network.subnets_ids)
+
+  networking_mode = "VPC_NATIVE"
+
+  ip_allocation_policy {
+    cluster_secondary_range_name  = local.pods_range_name
+    services_secondary_range_name = local.services_range_name
+
+    stack_type = "IPV4"
+
+    network_tier_config {
+      network_tier = "NETWORK_TIER_STANDARD"
+    }
+  }
+
+  ### Node setup
   # Nodes for the zonal cluster can also be in other zones in the same region, but this set can't overlap.
   node_locations = setsubtract(data.google_compute_zones.available.names, random_shuffle.zone.result)
 
@@ -26,10 +54,19 @@ resource "google_container_cluster" "main" {
   remove_default_node_pool = true
   initial_node_count       = 1
 
-  network    = module.google_network.network_self_link
-  subnetwork = one(module.google_network.subnets_self_links)
+  cluster_autoscaling {
+    enabled = false
+  }
 
-  # Access control
+  ### Security and encryption
+  datapath_provider            = "ADVANCED_DATAPATH"
+  in_transit_encryption_config = "IN_TRANSIT_ENCRYPTION_INTER_NODE_TRANSPARENT"
+
+  ### Access control
+  anonymous_authentication_config {
+    mode = "LIMITED"
+  }
+
   control_plane_endpoints_config {
     dns_endpoint_config {
       allow_external_traffic = true
@@ -47,18 +84,22 @@ resource "google_container_cluster" "main" {
     }
   }
 
-  # Networking
-  ip_allocation_policy {
-    cluster_secondary_range_name  = local.pods_range_name
-    services_secondary_range_name = local.svc_range_name
-  }
-
-  # Cost saving
+  ### Cost saving
   # https://hodovi.cc/blog/gke-on-a-budget-disabling-expensive-defaults-for-leaner-clusters/
   logging_service    = "none"
   monitoring_service = "none"
 
+  enable_tpu = false
+
   addons_config {
+    dns_cache_config {
+      enabled = false
+    }
+
+    gce_persistent_disk_csi_driver_config {
+      enabled = false
+    }
+
     gke_backup_agent_config {
       enabled = false
     }
@@ -66,6 +107,10 @@ resource "google_container_cluster" "main" {
 
   cost_management_config {
     enabled = false
+  }
+
+  default_snat_status {
+    disabled = true
   }
 
   network_policy {

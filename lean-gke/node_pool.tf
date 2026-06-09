@@ -35,9 +35,19 @@ resource "google_container_node_pool" "main" {
       size_gb = 40
     }
 
+    kubelet_config {
+      insecure_kubelet_readonly_port_enabled = "FALSE"
+    }
+
     shielded_instance_config {
       enable_integrity_monitoring = true
       enable_secure_boot          = true
+    }
+
+    labels = {
+      "lean-gke.jlucktay.dev/cluster-name"     = google_container_cluster.main.name
+      "lean-gke.jlucktay.dev/cluster-location" = google_container_cluster.main.location
+      "lean-gke.jlucktay.dev/project"          = module.google_project_factory.project_id
     }
   }
 

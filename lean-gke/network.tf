@@ -1,6 +1,6 @@
 locals {
-  pods_range_name = format("%s-ip-range-pods", local.name)
-  svc_range_name  = format("%s-ip-range-svc", local.name)
+  pods_range_name     = format("%s-pods", local.name)
+  services_range_name = format("%s-services", local.name)
 }
 
 module "google_network" {
@@ -13,7 +13,7 @@ module "google_network" {
   subnets = [
     {
       subnet_name           = local.name
-      subnet_ip             = "10.0.0.0/16"
+      subnet_ip             = "172.27.0.0/16"
       subnet_region         = var.region
       subnet_private_access = true
     },
@@ -23,11 +23,11 @@ module "google_network" {
     (local.name) = [
       {
         range_name    = local.pods_range_name
-        ip_cidr_range = "192.168.0.0/18"
+        ip_cidr_range = "172.28.0.0/16"
       },
       {
-        range_name    = local.svc_range_name
-        ip_cidr_range = "192.168.64.0/18"
+        range_name    = local.services_range_name
+        ip_cidr_range = "172.29.0.0/16"
       },
     ]
   }
