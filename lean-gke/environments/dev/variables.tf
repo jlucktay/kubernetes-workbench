@@ -40,6 +40,11 @@ variable "region" {
   type        = string
 }
 
+variable "node_machine_type" {
+  description = "Machine type for all nodes in the GKE cluster's pool."
+  type        = string
+}
+
 variable "master_auth_cidr_ranges" {
   description = "CIDR ranges that can access the Kubernetes master."
 

@@ -11,4 +11,6 @@ module "this" {
   region = var.region
 
   master_auth_cidr_ranges = var.master_auth_cidr_ranges
+
+  node_machine_type = var.node_machine_type
 }

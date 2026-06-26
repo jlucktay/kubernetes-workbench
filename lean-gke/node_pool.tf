@@ -23,7 +23,7 @@ resource "google_container_node_pool" "main" {
   }
 
   node_config {
-    machine_type = "e2-medium"
+    machine_type = var.node_machine_type
 
     service_account = google_service_account.main.email
     oauth_scopes = [
