@@ -8,3 +8,12 @@ output "cmd_credentials" {
     google_container_cluster.main.project,
   )
 }
+
+output "cmd_set_project" {
+  description = "Command line to set default Google Cloud CLI project to that of the GKE cluster."
+
+  value = format(
+    "gcloud config set project %s",
+    google_container_cluster.main.project,
+  )
+}
