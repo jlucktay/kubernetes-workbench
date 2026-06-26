@@ -7,6 +7,9 @@ resource "google_container_node_pool" "main" {
 
   initial_node_count = 1
 
+  # Nodes for the zonal cluster can also be in other zones in the same region, but this set can't overlap.
+  node_locations = setsubtract(data.google_compute_zones.available.names, random_shuffle.zone.result)
+
   autoscaling {
     location_policy = "BALANCED"
 
