@@ -44,7 +44,10 @@ variable "node_machine_type" {
 }
 
 variable "master_auth_cidr_ranges" {
-  description = "CIDR ranges that can access the Kubernetes master."
+  description = <<-EOT
+    CIDR ranges that can access the Kubernetes master.
+    If any entry in this list has a 'display_name' of 'Home' its 'cidr_block' value will also be used in the Cloud Armor allowlist.
+  EOT
 
   type = list(
     object({

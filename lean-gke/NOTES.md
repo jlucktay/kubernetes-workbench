@@ -14,6 +14,8 @@
 - Pared the node pool down to one node overall, instead of one node per zone.
   - Manipulated the `node_locations` fields on the node pool.
 
+- Allow listed the CIDR block with a `display_name` of `Home` in Cloud Armor rules, piggybacking on the control plane input variable.
+
 ## TODO
 
 - Run an Ingress or a `type = LoadBalancer` Service to expose a `podinfo` Deployment
