@@ -32,3 +32,17 @@ module "google_network" {
     ]
   }
 }
+
+resource "google_compute_address" "main" {
+  project = module.google_project_factory.project_id
+  region  = var.region
+
+  name        = local.name
+  description = "Static public IP for access into the GKE cluster."
+
+  deletion_policy = "DELETE"
+
+  address_type = "EXTERNAL"
+  ip_version   = "IPV4"
+  network_tier = "STANDARD"
+}
