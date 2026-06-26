@@ -26,6 +26,8 @@ module "google_project_factory" {
   disable_services_on_destroy = true
 
   activate_apis = [
+    "compute.googleapis.com",
     "container.googleapis.com",
+    "servicenetworking.googleapis.com",
   ]
 }
