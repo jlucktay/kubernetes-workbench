@@ -13,8 +13,8 @@ resource "google_container_node_pool" "main" {
   autoscaling {
     location_policy = "BALANCED"
 
-    min_node_count = 1
-    max_node_count = 3
+    total_min_node_count = 1
+    total_max_node_count = 3
   }
 
   management {
