@@ -11,7 +11,7 @@ resource "google_container_node_pool" "main" {
   node_locations = setsubtract(data.google_compute_zones.available.names, random_shuffle.zone.result)
 
   autoscaling {
-    location_policy = "BALANCED"
+    location_policy = "ANY"
 
     total_min_node_count = 1
     total_max_node_count = 3
