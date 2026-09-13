@@ -17,7 +17,7 @@ spec:
       serviceAccountName: aok-controller
       containers:
         - name: aok-controller
-          image: ghcr.io/jlucktay/aok-controller
+          image: ghcr.io/jlucktay/aok-controller:eb33a73b-fcce-4907-ba33-27835775b5f2
           imagePullPolicy: Never
           ports:
             - name: http-port
