@@ -1,5 +1,5 @@
 [tools]
 "aqua:BurntSushi/ripgrep" = "latest"
 "aqua:kubernetes-sigs/kind" = "latest"
-"aqua:kubernetes/kubectl" = "1.33"
+"aqua:kubernetes/kubectl" = "1"
 "aqua:mikefarah/yq" = "4"
